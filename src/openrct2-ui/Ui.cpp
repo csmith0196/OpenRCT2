@@ -29,6 +29,7 @@ using namespace OpenRCT2::Ui;
 
 template<typename T> static std::shared_ptr<T> ToShared(std::unique_ptr<T>&& src)
 {
+    // This is a comment
     return std::shared_ptr<T>(std::move(src));
 }
 

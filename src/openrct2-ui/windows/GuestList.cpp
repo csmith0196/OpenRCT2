@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -274,7 +274,7 @@ public:
         gWindowMapFlashingFlags |= MapFlashingFlags::GuestListOpen;
     }
 
-    void OnMouseUp(rct_widgetindex widgetIndex) override
+    void OnMouseUp(WidgetIndex widgetIndex) override
     {
         switch (widgetIndex)
         {
@@ -282,7 +282,7 @@ public:
                 Close();
                 break;
             case WIDX_MAP:
-                context_open_window(WC_MAP);
+                context_open_window(WindowClass::Map);
                 break;
             case WIDX_TRACKING:
                 _trackingOnly = !_trackingOnly;
@@ -309,7 +309,7 @@ public:
         }
     }
 
-    void OnMouseDown(rct_widgetindex widgetIndex) override
+    void OnMouseDown(WidgetIndex widgetIndex) override
     {
         switch (widgetIndex)
         {
@@ -378,7 +378,7 @@ public:
         }
     }
 
-    void OnDropdown(rct_widgetindex widgetIndex, int32_t dropdownIndex) override
+    void OnDropdown(WidgetIndex widgetIndex, int32_t dropdownIndex) override
     {
         switch (widgetIndex)
         {
@@ -393,7 +393,7 @@ public:
         }
     }
 
-    void OnTextInput(rct_widgetindex widgetIndex, std::string_view text) override
+    void OnTextInput(WidgetIndex widgetIndex, std::string_view text) override
     {
         if (!text.empty())
         {
@@ -649,9 +649,8 @@ private:
         // Tab 1 image
         auto i = (_selectedTab == TabId::Individual ? _tabAnimationIndex & ~3 : 0);
         i += GetPeepAnimation(PeepSpriteType::Normal).base_image + 1;
-        i |= 0xA1600000;
         gfx_draw_sprite(
-            &dpi, ImageId::FromUInt32(i),
+            &dpi, ImageId(i, COLOUR_GREY, COLOUR_DARK_OLIVE_GREEN),
             windowPos + ScreenCoordsXY{ widgets[WIDX_TAB_1].midX(), widgets[WIDX_TAB_1].bottom - 6 });
 
         // Tab 2 image
@@ -717,7 +716,7 @@ private:
 
                             ft = Formatter();
                             peep_thought_set_format_args(&thought, ft);
-                            DrawTextEllipsised(&dpi, { 118, y }, 329, format, ft, { FontSpriteBase::SMALL });
+                            DrawTextEllipsised(&dpi, { 118, y }, 329, format, ft, { FontStyle::Small });
                             break;
                         }
                         break;
@@ -762,7 +761,7 @@ private:
                 // Draw small font if displaying guests
                 if (_selectedView == GuestViewType::Thoughts)
                 {
-                    DrawTextEllipsised(&dpi, { 0, y }, 414, format, ft, { FontSpriteBase::SMALL });
+                    DrawTextEllipsised(&dpi, { 0, y }, 414, format, ft, { FontStyle::Small });
                 }
                 else
                 {
@@ -963,10 +962,10 @@ private:
 
 rct_window* WindowGuestListOpen()
 {
-    auto* window = window_bring_to_front_by_class(WC_GUEST_LIST);
+    auto* window = window_bring_to_front_by_class(WindowClass::GuestList);
     if (window == nullptr)
     {
-        window = WindowCreate<GuestListWindow>(WC_GUEST_LIST, 350, 330, WF_10 | WF_RESIZABLE);
+        window = WindowCreate<GuestListWindow>(WindowClass::GuestList, 350, 330, WF_10 | WF_RESIZABLE);
     }
     return window;
 }
@@ -986,7 +985,7 @@ rct_window* WindowGuestListOpenWithFilter(GuestListFilterType type, int32_t inde
 
 void WindowGuestListRefreshList()
 {
-    auto* w = window_find_by_class(WC_GUEST_LIST);
+    auto* w = window_find_by_class(WindowClass::GuestList);
     if (w != nullptr)
     {
         static_cast<GuestListWindow*>(w)->RefreshList();

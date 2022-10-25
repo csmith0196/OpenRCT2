@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -56,7 +56,7 @@ public:
         WindowInitScrollWidgets(*this);
     }
 
-    void OnMouseUp(rct_widgetindex widgetIndex) override
+    void OnMouseUp(WidgetIndex widgetIndex) override
     {
         switch (widgetIndex)
         {
@@ -96,16 +96,17 @@ rct_window* WindowRideRefurbishPromptOpen(Ride* ride)
     rct_window* w;
     RefurbishRidePromptWindow* newWindow;
 
-    w = window_find_by_class(WC_DEMOLISH_RIDE_PROMPT);
+    w = window_find_by_class(WindowClass::DemolishRidePrompt);
     if (w != nullptr)
     {
         auto windowPos = w->windowPos;
         window_close(*w);
-        newWindow = WindowCreate<RefurbishRidePromptWindow>(WC_DEMOLISH_RIDE_PROMPT, windowPos, WW, WH, WF_TRANSPARENT);
+        newWindow = WindowCreate<RefurbishRidePromptWindow>(WindowClass::DemolishRidePrompt, windowPos, WW, WH, WF_TRANSPARENT);
     }
     else
     {
-        newWindow = WindowCreate<RefurbishRidePromptWindow>(WC_DEMOLISH_RIDE_PROMPT, WW, WH, WF_CENTRE_SCREEN | WF_TRANSPARENT);
+        newWindow = WindowCreate<RefurbishRidePromptWindow>(
+            WindowClass::DemolishRidePrompt, WW, WH, WF_CENTRE_SCREEN | WF_TRANSPARENT);
     }
 
     newWindow->SetRide(ride);

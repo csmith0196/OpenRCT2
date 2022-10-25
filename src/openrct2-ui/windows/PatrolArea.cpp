@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -68,7 +68,7 @@ public:
             tool_cancel();
     }
 
-    void OnMouseUp(rct_widgetindex widgetIndex) override
+    void OnMouseUp(WidgetIndex widgetIndex) override
     {
         switch (widgetIndex)
         {
@@ -81,7 +81,7 @@ public:
         }
     }
 
-    void OnMouseDown(rct_widgetindex widgetIndex) override
+    void OnMouseDown(WidgetIndex widgetIndex) override
     {
         switch (widgetIndex)
         {
@@ -96,7 +96,7 @@ public:
         }
     }
 
-    void OnTextInput(rct_widgetindex widgetIndex, std::string_view text) override
+    void OnTextInput(WidgetIndex widgetIndex, std::string_view text) override
     {
         if (text.empty())
             return;
@@ -146,7 +146,7 @@ public:
         }
     }
 
-    void OnToolUpdate(rct_widgetindex widgetIndex, const ScreenCoordsXY& screenCoords) override
+    void OnToolUpdate(WidgetIndex widgetIndex, const ScreenCoordsXY& screenCoords) override
     {
         auto mapTile = GetBestCoordsFromPos(screenCoords);
         if (!mapTile)
@@ -176,25 +176,25 @@ public:
         if (stateChanged)
         {
             // Invalidate previous area
-            map_invalidate_selection_rect();
+            MapInvalidateSelectionRect();
 
             // Update and invalidate new area
             gMapSelectFlags |= MAP_SELECT_FLAG_ENABLE;
             gMapSelectType = MAP_SELECT_TYPE_FULL;
             gMapSelectPositionA = posA;
             gMapSelectPositionB = posB;
-            map_invalidate_selection_rect();
+            MapInvalidateSelectionRect();
         }
     }
 
-    void OnToolAbort(rct_widgetindex widgetIndex) override
+    void OnToolAbort(WidgetIndex widgetIndex) override
     {
         hide_gridlines();
         ClearPatrolAreaToRender();
         gfx_invalidate_screen();
     }
 
-    void OnToolDown(rct_widgetindex widgetIndex, const ScreenCoordsXY& screenCoords) override
+    void OnToolDown(WidgetIndex widgetIndex, const ScreenCoordsXY& screenCoords) override
     {
         auto mapTile = GetBestCoordsFromPos(screenCoords);
         if (mapTile)
@@ -209,7 +209,7 @@ public:
         OnToolDrag(widgetIndex, screenCoords);
     }
 
-    void OnToolDrag(rct_widgetindex widgetIndex, const ScreenCoordsXY& screenCoords) override
+    void OnToolDrag(WidgetIndex widgetIndex, const ScreenCoordsXY& screenCoords) override
     {
         auto staff = GetEntity<Staff>(_staffId);
         if (staff != nullptr)
@@ -266,7 +266,7 @@ private:
     {
         if (!(input_test_flag(INPUT_FLAG_TOOL_ACTIVE)))
             return false;
-        if (gCurrentToolWidget.window_classification != WC_PATROL_AREA)
+        if (gCurrentToolWidget.window_classification != WindowClass::PatrolArea)
             return false;
         return true;
     }
@@ -274,20 +274,21 @@ private:
     bool IsStaffWindowOpen()
     {
         // If staff window for this patrol area was closed, tool is no longer active
-        auto staffWindow = window_find_by_number(WC_PEEP, _staffId);
+        auto staffWindow = window_find_by_number(WindowClass::Peep, _staffId);
         return staffWindow != nullptr;
     }
 
     std::optional<CoordsXY> GetBestCoordsFromPos(const ScreenCoordsXY& pos)
     {
-        auto coords = footpath_get_coordinates_from_pos(pos, nullptr, nullptr);
+        auto coords = FootpathGetCoordinatesFromPos(pos, nullptr, nullptr);
         return coords.IsNull() ? std::nullopt : std::make_optional(coords);
     }
 };
 
 rct_window* WindowPatrolAreaOpen(EntityId staffId)
 {
-    auto w = WindowFocusOrCreate<PatrolAreaWindow>(WC_PATROL_AREA, ScreenCoordsXY(context_get_width() - WW, 29), WW, WH, 0);
+    auto w = WindowFocusOrCreate<PatrolAreaWindow>(
+        WindowClass::PatrolArea, ScreenCoordsXY(context_get_width() - WW, 29), WW, WH, 0);
     if (w != nullptr)
     {
         w->SetStaffId(staffId);
@@ -297,6 +298,6 @@ rct_window* WindowPatrolAreaOpen(EntityId staffId)
 
 EntityId WindowPatrolAreaGetCurrentStaffId()
 {
-    auto current = reinterpret_cast<PatrolAreaWindow*>(window_find_by_class(WC_PATROL_AREA));
+    auto current = reinterpret_cast<PatrolAreaWindow*>(window_find_by_class(WindowClass::PatrolArea));
     return current != nullptr ? current->GetStaffId() : EntityId::GetNull();
 }

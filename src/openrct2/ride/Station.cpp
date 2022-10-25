@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -102,7 +102,7 @@ static void ride_update_station_dodgems(Ride* ride, StationIndex stationIndex)
     {
         int32_t dx = ride->time_limit * 32;
         int32_t dh = (dx >> 8) & 0xFF;
-        for (size_t i = 0; i < ride->num_vehicles; i++)
+        for (size_t i = 0; i < ride->NumTrains; i++)
         {
             Vehicle* vehicle = GetEntity<Vehicle>(ride->vehicles[i]);
             if (vehicle == nullptr)
@@ -123,7 +123,7 @@ static void ride_update_station_dodgems(Ride* ride, StationIndex stationIndex)
     else
     {
         // Check if all vehicles are ready to go
-        for (size_t i = 0; i < ride->num_vehicles; i++)
+        for (size_t i = 0; i < ride->NumTrains; i++)
         {
             Vehicle* vehicle = GetEntity<Vehicle>(ride->vehicles[i]);
             if (vehicle == nullptr)
@@ -199,7 +199,7 @@ static void ride_update_station_race(Ride* ride, StationIndex stationIndex)
     {
         int32_t numLaps = ride->NumLaps;
 
-        for (size_t i = 0; i < ride->num_vehicles; i++)
+        for (size_t i = 0; i < ride->NumTrains; i++)
         {
             Vehicle* vehicle = GetEntity<Vehicle>(ride->vehicles[i]);
             if (vehicle == nullptr)
@@ -235,7 +235,7 @@ static void ride_update_station_race(Ride* ride, StationIndex stationIndex)
     else
     {
         // Check if all vehicles are ready to go
-        for (size_t i = 0; i < ride->num_vehicles; i++)
+        for (size_t i = 0; i < ride->NumTrains; i++)
         {
             Vehicle* vehicle = GetEntity<Vehicle>(ride->vehicles[i]);
             if (vehicle == nullptr)
@@ -272,7 +272,7 @@ static void ride_update_station_race(Ride* ride, StationIndex stationIndex)
  */
 static void ride_race_init_vehicle_speeds(Ride* ride)
 {
-    for (size_t i = 0; i < ride->num_vehicles; i++)
+    for (size_t i = 0; i < ride->NumTrains; i++)
     {
         Vehicle* vehicle = GetEntity<Vehicle>(ride->vehicles[i]);
         if (vehicle == nullptr)
@@ -330,7 +330,7 @@ static void ride_invalidate_station_start(Ride* ride, StationIndex stationIndex,
     tileElement->AsTrack()->SetHasGreenLight(greenLight);
 
     // Invalidate map tile
-    map_invalidate_tile_zoom1({ startPos, tileElement->GetBaseZ(), tileElement->GetClearanceZ() });
+    MapInvalidateTileZoom1({ startPos, tileElement->GetBaseZ(), tileElement->GetClearanceZ() });
 }
 
 TileElement* ride_get_station_start_track_element(const Ride* ride, StationIndex stationIndex)
@@ -338,7 +338,7 @@ TileElement* ride_get_station_start_track_element(const Ride* ride, StationIndex
     auto stationStart = ride->GetStation(stationIndex).GetStart();
 
     // Find the station track element
-    TileElement* tileElement = map_get_first_element_at(stationStart);
+    TileElement* tileElement = MapGetFirstElementAt(stationStart);
     if (tileElement == nullptr)
         return nullptr;
     do
@@ -354,7 +354,7 @@ TileElement* ride_get_station_start_track_element(const Ride* ride, StationIndex
 TileElement* ride_get_station_exit_element(const CoordsXYZ& elementPos)
 {
     // Find the station track element
-    TileElement* tileElement = map_get_first_element_at(elementPos);
+    TileElement* tileElement = MapGetFirstElementAt(elementPos);
     if (tileElement == nullptr)
         return nullptr;
     do

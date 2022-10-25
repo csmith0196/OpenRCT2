@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -15,7 +15,7 @@ namespace OpenRCT2::Ui
     class DummyWindowManager final : public IWindowManager
     {
         void Init() override{};
-        rct_window* OpenWindow(rct_windowclass /*wc*/) override
+        rct_window* OpenWindow(WindowClass /*wc*/) override
         {
             return nullptr;
         }
@@ -42,7 +42,7 @@ namespace OpenRCT2::Ui
         void BroadcastIntent(const Intent& /*intent*/) override
         {
         }
-        void ForceClose(rct_windowclass /*windowClass*/) override
+        void ForceClose(WindowClass /*windowClass*/) override
         {
         }
         void UpdateMapTooltip() override

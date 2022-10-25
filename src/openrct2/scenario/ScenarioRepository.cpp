@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -126,7 +126,7 @@ class ScenarioFileIndex final : public FileIndex<scenario_index_entry>
 {
 private:
     static constexpr uint32_t MAGIC_NUMBER = 0x58444953; // SIDX
-    static constexpr uint16_t VERSION = 5;
+    static constexpr uint16_t VERSION = 6;
     static constexpr auto PATTERN = "*.sc4;*.sc6;*.sea;*.park";
 
 public:
@@ -142,19 +142,19 @@ public:
     }
 
 protected:
-    std::tuple<bool, scenario_index_entry> Create(int32_t, const std::string& path) const override
+    std::optional<scenario_index_entry> Create(int32_t, const std::string& path) const override
     {
         scenario_index_entry entry;
         auto timestamp = File::GetLastModified(path);
         if (GetScenarioInfo(path, timestamp, &entry))
         {
-            return std::make_tuple(true, entry);
+            return entry;
         }
 
-        return std::make_tuple(true, scenario_index_entry());
+        return std::nullopt;
     }
 
-    void Serialise(DataSerialiser& ds, scenario_index_entry& item) const override
+    void Serialise(DataSerialiser& ds, const scenario_index_entry& item) const override
     {
         ds << item.path;
         ds << item.timestamp;
@@ -578,7 +578,7 @@ private:
 
     void Sort()
     {
-        if (gConfigGeneral.scenario_select_mode == SCENARIO_SELECT_MODE_ORIGIN)
+        if (gConfigGeneral.ScenarioSelectMode == SCENARIO_SELECT_MODE_ORIGIN)
         {
             std::sort(
                 _scenarios.begin(), _scenarios.end(), [](const scenario_index_entry& a, const scenario_index_entry& b) -> bool {

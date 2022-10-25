@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -63,7 +63,7 @@ public:
         ResizeLanguage = LANGUAGE_UNDEFINED;
     }
 
-    void OnMouseUp(rct_widgetindex widgetIndex) override
+    void OnMouseUp(WidgetIndex widgetIndex) override
     {
         switch (widgetIndex)
         {
@@ -110,7 +110,7 @@ public:
                 const auto& stringIdx = widgets[widgetIndex].text;
                 auto string = ls.GetString(stringIdx);
                 Guard::ArgumentNotNull(string);
-                const auto strWidth = gfx_get_string_width(string, FontSpriteBase::MEDIUM);
+                const auto strWidth = gfx_get_string_width(string, FontStyle::Medium);
                 newWidth = std::max<int16_t>(strWidth, newWidth);
             }
 
@@ -146,7 +146,7 @@ public:
 rct_window* WindowDebugPaintOpen()
 {
     auto* window = WindowFocusOrCreate<DebugPaintWindow>(
-        WC_DEBUG_PAINT, { 16, context_get_height() - 16 - 33 - WINDOW_HEIGHT }, WINDOW_WIDTH, WINDOW_HEIGHT,
+        WindowClass::DebugPaint, { 16, context_get_height() - 16 - 33 - WINDOW_HEIGHT }, WINDOW_WIDTH, WINDOW_HEIGHT,
         WF_STICK_TO_FRONT | WF_TRANSPARENT);
 
     return window;

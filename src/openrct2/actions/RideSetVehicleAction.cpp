@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -137,7 +137,7 @@ GameActions::Result RideSetVehicleAction::Execute() const
             ride->RemovePeeps();
             ride->vehicle_change_timeout = 100;
 
-            ride->proposed_num_vehicles = _value;
+            ride->ProposedNumTrains = _value;
             break;
         case RideSetVehicleType::NumCarsPerTrain:
         {
@@ -197,7 +197,7 @@ GameActions::Result RideSetVehicleAction::Execute() const
     if (!ride->overall_view.IsNull())
     {
         auto location = ride->overall_view.ToTileCentre();
-        res.Position = { location, tile_element_height(res.Position) };
+        res.Position = { location, TileElementHeight(res.Position) };
     }
 
     auto intent = Intent(INTENT_ACTION_RIDE_PAINT_RESET_VEHICLE);

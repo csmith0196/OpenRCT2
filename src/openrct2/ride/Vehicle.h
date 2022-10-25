@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -30,7 +30,7 @@ struct Ride;
 struct rct_ride_entry;
 struct CarEntry;
 class DataSerialiser;
-struct paint_session;
+struct PaintSession;
 
 struct GForces
 {
@@ -109,7 +109,7 @@ struct Vehicle : EntityBase
     int32_t acceleration;
     RideId ride;
     uint8_t vehicle_type;
-    rct_vehicle_colour colours;
+    VehicleColour colours;
     union
     {
         uint16_t track_progress;
@@ -204,7 +204,6 @@ struct Vehicle : EntityBase
     MiniGolfAnimation mini_golf_current_animation;
     uint8_t mini_golf_flags;
     ObjectEntryIndex ride_subtype;
-    uint8_t colours_extended;
     uint8_t seat_rotation;
     uint8_t target_seat_rotation;
     CoordsXY BoatLocation;
@@ -271,7 +270,10 @@ struct Vehicle : EntityBase
     }
     void ApplyMass(int16_t appliedMass);
     void Serialise(DataSerialiser& stream);
-    void Paint(paint_session& session, int32_t imageDirection) const;
+    void Paint(PaintSession& session, int32_t imageDirection) const;
+
+    friend void UpdateRotatingDefault(Vehicle& vehicle);
+    friend void UpdateRotatingEnterprise(Vehicle& vehicle);
 
 private:
     bool SoundCanPlay() const;
@@ -373,6 +375,9 @@ private:
     int32_t CalculateRiderBraking() const;
 };
 static_assert(sizeof(Vehicle) <= 512);
+
+void UpdateRotatingDefault(Vehicle& vehicle);
+void UpdateRotatingEnterprise(Vehicle& vehicle);
 
 struct train_ref
 {
@@ -521,6 +526,7 @@ enum
 Vehicle* try_get_vehicle(EntityId spriteIndex);
 void vehicle_update_all();
 void vehicle_sounds_update();
+uint16_t vehicle_get_move_info_size(VehicleTrackSubposition trackSubposition, track_type_t type, uint8_t direction);
 
 void RideUpdateMeasurementsSpecialElements_Default(Ride* ride, const track_type_t trackType);
 void RideUpdateMeasurementsSpecialElements_MiniGolf(Ride* ride, const track_type_t trackType);

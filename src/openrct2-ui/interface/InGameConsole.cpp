@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -26,14 +26,14 @@ using namespace OpenRCT2::Ui;
 
 static InGameConsole _inGameConsole;
 
-static FontSpriteBase InGameConsoleGetFontSpriteBase()
+static FontStyle InGameConsoleGetFontStyle()
 {
-    return (gConfigInterface.console_small_font ? FontSpriteBase::SMALL : FontSpriteBase::MEDIUM);
+    return (gConfigInterface.ConsoleSmallFont ? FontStyle::Small : FontStyle::Medium);
 }
 
 static int32_t InGameConsoleGetLineHeight()
 {
-    return font_get_line_height(InGameConsoleGetFontSpriteBase());
+    return font_get_line_height(InGameConsoleGetFontStyle());
 }
 
 InGameConsole::InGameConsole()
@@ -150,7 +150,7 @@ void InGameConsole::RefreshCaret(size_t position)
     _selectionStart = position;
     char tempString[TEXT_INPUT_SIZE] = { 0 };
     std::memcpy(tempString, &_consoleCurrentLine, _selectionStart);
-    _caretScreenPosX = gfx_get_string_width_no_formatting(tempString, InGameConsoleGetFontSpriteBase());
+    _caretScreenPosX = gfx_get_string_width_no_formatting(tempString, InGameConsoleGetFontStyle());
 }
 
 void InGameConsole::Scroll(int32_t linesToScroll)
@@ -274,7 +274,7 @@ void InGameConsole::Draw(rct_drawpixelinfo* dpi) const
         return;
 
     // Set font
-    uint8_t textColour = NOT_TRANSLUCENT(ThemeGetColour(WC_CONSOLE, 1));
+    uint8_t textColour = NOT_TRANSLUCENT(ThemeGetColour(WindowClass::Console, 1));
     const int32_t lineHeight = InGameConsoleGetLineHeight();
     const int32_t maxLines = GetNumVisibleLines();
 
@@ -304,7 +304,7 @@ void InGameConsole::Draw(rct_drawpixelinfo* dpi) const
         FilterPaletteID::Palette51);
 
     // Paint background colour.
-    uint8_t backgroundColour = ThemeGetColour(WC_CONSOLE, 0);
+    uint8_t backgroundColour = ThemeGetColour(WindowClass::Console, 0);
     gfx_fill_rect_inset(dpi, { _consoleTopLeft, _consoleBottomRight }, backgroundColour, INSET_RECT_FLAG_FILL_NONE);
     gfx_fill_rect_inset(
         dpi, { _consoleTopLeft + ScreenCoordsXY{ 1, 1 }, _consoleBottomRight - ScreenCoordsXY{ 1, 1 } }, backgroundColour,
@@ -318,7 +318,7 @@ void InGameConsole::Draw(rct_drawpixelinfo* dpi) const
     {
         const size_t index = i + _consoleScrollPos;
         lineBuffer = _colourFormatStr + _consoleLines[index];
-        gfx_draw_string(dpi, screenCoords, lineBuffer.c_str(), { textColour, InGameConsoleGetFontSpriteBase() });
+        gfx_draw_string(dpi, screenCoords, lineBuffer.c_str(), { textColour, InGameConsoleGetFontStyle() });
         screenCoords.y += lineHeight;
     }
 
@@ -326,7 +326,7 @@ void InGameConsole::Draw(rct_drawpixelinfo* dpi) const
 
     // Draw current line
     lineBuffer = _colourFormatStr + _consoleCurrentLine;
-    gfx_draw_string_no_formatting(dpi, screenCoords, lineBuffer.c_str(), { TEXT_COLOUR_255, InGameConsoleGetFontSpriteBase() });
+    gfx_draw_string_no_formatting(dpi, screenCoords, lineBuffer.c_str(), { TEXT_COLOUR_255, InGameConsoleGetFontStyle() });
 
     // Draw caret
     if (_consoleCaretTicks < CONSOLE_CARET_FLASH_THRESHOLD)

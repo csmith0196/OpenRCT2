@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -90,7 +90,7 @@ GameActions::Result RideSetPriceAction::Execute() const
     if (!ride->overall_view.IsNull())
     {
         auto location = ride->overall_view.ToTileCentre();
-        res.Position = { location, tile_element_height(location) };
+        res.Position = { location, TileElementHeight(location) };
     }
 
     ShopItem shopItem;
@@ -105,7 +105,7 @@ GameActions::Result RideSetPriceAction::Execute() const
             if (shopItem == ShopItem::None)
             {
                 ride->price[0] = _price;
-                window_invalidate_by_class(WC_RIDE);
+                window_invalidate_by_class(WindowClass::Ride);
                 return res;
             }
         }
@@ -113,7 +113,7 @@ GameActions::Result RideSetPriceAction::Execute() const
         if (!shop_item_has_common_price(shopItem))
         {
             ride->price[0] = _price;
-            window_invalidate_by_class(WC_RIDE);
+            window_invalidate_by_class(WindowClass::Ride);
             return res;
         }
     }
@@ -126,7 +126,7 @@ GameActions::Result RideSetPriceAction::Execute() const
             if ((ride->lifecycle_flags & RIDE_LIFECYCLE_ON_RIDE_PHOTO) == 0)
             {
                 ride->price[1] = _price;
-                window_invalidate_by_class(WC_RIDE);
+                window_invalidate_by_class(WindowClass::Ride);
                 return res;
             }
         }
@@ -134,7 +134,7 @@ GameActions::Result RideSetPriceAction::Execute() const
         if (!shop_item_has_common_price(shopItem))
         {
             ride->price[1] = _price;
-            window_invalidate_by_class(WC_RIDE);
+            window_invalidate_by_class(WindowClass::Ride);
             return res;
         }
     }
@@ -183,7 +183,7 @@ void RideSetPriceAction::RideSetCommonPrice(ShopItem shopItem) const
         }
         if (invalidate)
         {
-            window_invalidate_by_number(WC_RIDE, ride.id.ToUnderlying());
+            window_invalidate_by_number(WindowClass::Ride, ride.id.ToUnderlying());
         }
     }
 }

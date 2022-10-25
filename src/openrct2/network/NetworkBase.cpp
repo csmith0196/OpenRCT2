@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -42,7 +42,9 @@
 // This string specifies which version of network stream current build uses.
 // It is used for making sure only compatible builds get connected, even within
 // single OpenRCT2 version.
+
 #define NETWORK_STREAM_VERSION "4"
+
 #define NETWORK_STREAM_ID OPENRCT2_VERSION "-" NETWORK_STREAM_VERSION
 
 static Peep* _pickup_peep = nullptr;
@@ -111,7 +113,6 @@ static u8string network_get_public_key_path(u8string_view playerName, u8string_v
 NetworkBase::NetworkBase(OpenRCT2::IContext& context)
     : OpenRCT2::System(context)
 {
-    wsa_initialized = false;
     mode = NETWORK_MODE_NONE;
     status = NETWORK_STATUS_NONE;
     last_ping_sent_time = 0;
@@ -281,7 +282,7 @@ bool NetworkBase::BeginClient(const std::string& host, uint16_t port)
     // risk of tick collision with the server map and title screen map.
     GameActions::SuspendQueue();
 
-    auto keyPath = network_get_private_key_path(gConfigNetwork.player_name);
+    auto keyPath = network_get_private_key_path(gConfigNetwork.PlayerName);
     if (!File::Exists(keyPath))
     {
         Console::WriteLine("Generating key... This may take a while");
@@ -309,7 +310,7 @@ bool NetworkBase::BeginClient(const std::string& host, uint16_t port)
 
         const std::string hash = _key.PublicKeyHash();
         const utf8* publicKeyHash = hash.c_str();
-        keyPath = network_get_public_key_path(gConfigNetwork.player_name, publicKeyHash);
+        keyPath = network_get_public_key_path(gConfigNetwork.PlayerName, publicKeyHash);
         Console::WriteLine("Key generated, saving public bits as %s", keyPath.c_str());
 
         try
@@ -371,19 +372,21 @@ bool NetworkBase::BeginServer(uint16_t port, const std::string& address)
         return false;
     }
 
-    ServerName = gConfigNetwork.server_name;
-    ServerDescription = gConfigNetwork.server_description;
-    ServerGreeting = gConfigNetwork.server_greeting;
-    ServerProviderName = gConfigNetwork.provider_name;
-    ServerProviderEmail = gConfigNetwork.provider_email;
-    ServerProviderWebsite = gConfigNetwork.provider_website;
+    ServerName = gConfigNetwork.ServerName;
+    ServerDescription = gConfigNetwork.ServerDescription;
+    ServerGreeting = gConfigNetwork.ServerGreeting;
+    ServerProviderName = gConfigNetwork.ProviderName;
+    ServerProviderEmail = gConfigNetwork.ProviderEmail;
+    ServerProviderWebsite = gConfigNetwork.ProviderWebsite;
+
+    IsServerPlayerInvisible = gOpenRCT2Headless;
 
     CheatsReset();
     LoadGroups();
     BeginChatLog();
     BeginServerLog();
 
-    NetworkPlayer* player = AddPlayer(gConfigNetwork.player_name, "");
+    NetworkPlayer* player = AddPlayer(gConfigNetwork.PlayerName, "");
     player->Flags |= NETWORK_PLAYER_FLAG_ISSERVER;
     player->Group = 0;
     player_id = player->Id;
@@ -404,7 +407,7 @@ bool NetworkBase::BeginServer(uint16_t port, const std::string& address)
 
     status = NETWORK_STATUS_CONNECTED;
     listening_port = port;
-    _serverState.gamestateSnapshotsEnabled = gConfigNetwork.desync_debugging;
+    _serverState.gamestateSnapshotsEnabled = gConfigNetwork.DesyncDebugging;
     _advertiser = CreateServerAdvertiser(listening_port);
 
     game_load_scripts();
@@ -560,7 +563,7 @@ void NetworkBase::UpdateClient()
                         char str_resolving[256];
                         format_string(str_resolving, 256, STR_MULTIPLAYER_RESOLVING, nullptr);
 
-                        auto intent = Intent(WC_NETWORK_STATUS);
+                        auto intent = Intent(WindowClass::NetworkStatus);
                         intent.putExtra(INTENT_EXTRA_MESSAGE, std::string{ str_resolving });
                         intent.putExtra(INTENT_EXTRA_CALLBACK, []() -> void { ::GetContext()->GetNetwork().Close(); });
                         context_open_intent(&intent);
@@ -575,7 +578,7 @@ void NetworkBase::UpdateClient()
                         char str_connecting[256];
                         format_string(str_connecting, 256, STR_MULTIPLAYER_CONNECTING, nullptr);
 
-                        auto intent = Intent(WC_NETWORK_STATUS);
+                        auto intent = Intent(WindowClass::NetworkStatus);
                         intent.putExtra(INTENT_EXTRA_MESSAGE, std::string{ str_connecting });
                         intent.putExtra(INTENT_EXTRA_CALLBACK, []() -> void { ::GetContext()->GetNetwork().Close(); });
                         context_open_intent(&intent);
@@ -592,7 +595,7 @@ void NetworkBase::UpdateClient()
                     char str_authenticating[256];
                     format_string(str_authenticating, 256, STR_MULTIPLAYER_AUTHENTICATING, nullptr);
 
-                    auto intent = Intent(WC_NETWORK_STATUS);
+                    auto intent = Intent(WindowClass::NetworkStatus);
                     intent.putExtra(INTENT_EXTRA_MESSAGE, std::string{ str_authenticating });
                     intent.putExtra(INTENT_EXTRA_CALLBACK, []() -> void { ::GetContext()->GetNetwork().Close(); });
                     context_open_intent(&intent);
@@ -607,7 +610,7 @@ void NetworkBase::UpdateClient()
                     }
 
                     Close();
-                    context_force_close_window_by_class(WC_NETWORK_STATUS);
+                    context_force_close_window_by_class(WindowClass::NetworkStatus);
                     context_show_error(STR_UNABLE_TO_CONNECT_TO_SERVER, STR_NONE, {});
                     break;
                 }
@@ -621,7 +624,7 @@ void NetworkBase::UpdateClient()
                 // Do not show disconnect message window when password window closed/canceled
                 if (_serverConnection->AuthStatus == NetworkAuth::RequirePassword)
                 {
-                    context_force_close_window_by_class(WC_NETWORK_STATUS);
+                    context_force_close_window_by_class(WindowClass::NetworkStatus);
                 }
                 else
                 {
@@ -637,11 +640,11 @@ void NetworkBase::UpdateClient()
                         format_string(str_disconnected, 256, STR_MULTIPLAYER_DISCONNECTED_NO_REASON, nullptr);
                     }
 
-                    auto intent = Intent(WC_NETWORK_STATUS);
+                    auto intent = Intent(WindowClass::NetworkStatus);
                     intent.putExtra(INTENT_EXTRA_MESSAGE, std::string{ str_disconnected });
                     context_open_intent(&intent);
                 }
-                window_close_by_class(WC_MULTIPLAYER);
+                window_close_by_class(WindowClass::Multiplayer);
                 Close();
             }
             else
@@ -690,6 +693,18 @@ NetworkGroup* NetworkBase::GetGroupByID(uint8_t id) const
         return it->get();
     }
     return nullptr;
+}
+
+int32_t NetworkBase::GetTotalNumPlayers() const noexcept
+{
+    return static_cast<int32_t>(player_list.size());
+}
+
+int32_t NetworkBase::GetNumVisiblePlayers() const noexcept
+{
+    if (IsServerPlayerInvisible)
+        return static_cast<int32_t>(player_list.size() - 1);
+    return static_cast<int32_t>(player_list.size());
 }
 
 const char* NetworkBase::FormatChat(NetworkPlayer* fromplayer, const char* text)
@@ -777,11 +792,11 @@ bool NetworkBase::CheckDesynchronizaton()
         char str_desync[256];
         format_string(str_desync, 256, STR_MULTIPLAYER_DESYNC, nullptr);
 
-        auto intent = Intent(WC_NETWORK_STATUS);
+        auto intent = Intent(WindowClass::NetworkStatus);
         intent.putExtra(INTENT_EXTRA_MESSAGE, std::string{ str_desync });
         context_open_intent(&intent);
 
-        if (!gConfigNetwork.stay_connected)
+        if (!gConfigNetwork.StayConnected)
         {
             Close();
         }
@@ -853,12 +868,12 @@ std::string NetworkBase::GenerateAdvertiseKey()
 
 std::string NetworkBase::GetMasterServerUrl()
 {
-    if (gConfigNetwork.master_server_url.empty())
+    if (gConfigNetwork.MasterServerUrl.empty())
     {
         return OPENRCT2_MASTER_SERVER_URL;
     }
 
-    return gConfigNetwork.master_server_url;
+    return gConfigNetwork.MasterServerUrl;
 }
 
 NetworkGroup* NetworkBase::AddGroup()
@@ -1096,7 +1111,7 @@ void NetworkBase::BeginChatLog()
 
 void NetworkBase::AppendChatLog(std::string_view s)
 {
-    if (gConfigNetwork.log_chat && _chat_log_fs.is_open())
+    if (gConfigNetwork.LogChat && _chat_log_fs.is_open())
     {
         AppendLog(_chat_log_fs, s);
     }
@@ -1134,7 +1149,7 @@ void NetworkBase::BeginServerLog()
 
 void NetworkBase::AppendServerLog(const std::string& s)
 {
-    if (gConfigNetwork.log_server_actions && _server_log_fs.is_open())
+    if (gConfigNetwork.LogServerActions && _server_log_fs.is_open())
     {
         AppendLog(_server_log_fs, s);
     }
@@ -1568,10 +1583,10 @@ void NetworkBase::Server_Send_SETDISCONNECTMSG(NetworkConnection& connection, co
 json_t NetworkBase::GetServerInfoAsJson() const
 {
     json_t jsonObj = {
-        { "name", gConfigNetwork.server_name },         { "requiresPassword", _password.size() > 0 },
-        { "version", network_get_version() },           { "players", player_list.size() },
-        { "maxPlayers", gConfigNetwork.maxplayers },    { "description", gConfigNetwork.server_description },
-        { "greeting", gConfigNetwork.server_greeting }, { "dedicated", gOpenRCT2Headless },
+        { "name", gConfigNetwork.ServerName },         { "requiresPassword", _password.size() > 0 },
+        { "version", network_get_version() },          { "players", GetNumVisiblePlayers() },
+        { "maxPlayers", gConfigNetwork.Maxplayers },   { "description", gConfigNetwork.ServerDescription },
+        { "greeting", gConfigNetwork.ServerGreeting }, { "dedicated", gOpenRCT2Headless },
     };
     return jsonObj;
 }
@@ -1584,15 +1599,16 @@ void NetworkBase::Server_Send_GAMEINFO(NetworkConnection& connection)
 
     // Provider details
     json_t jsonProvider = {
-        { "name", gConfigNetwork.provider_name },
-        { "email", gConfigNetwork.provider_email },
-        { "website", gConfigNetwork.provider_website },
+        { "name", gConfigNetwork.ProviderName },
+        { "email", gConfigNetwork.ProviderEmail },
+        { "website", gConfigNetwork.ProviderWebsite },
     };
 
     jsonObj["provider"] = jsonProvider;
 
     packet.WriteString(jsonObj.dump());
     packet << _serverState.gamestateSnapshotsEnabled;
+    packet << IsServerPlayerInvisible;
 
 #    endif
     connection.QueuePacket(std::move(packet));
@@ -2103,7 +2119,7 @@ std::string NetworkBase::MakePlayerNameUnique(const std::string& name)
 
 void NetworkBase::Client_Handle_TOKEN(NetworkConnection& connection, NetworkPacket& packet)
 {
-    auto keyPath = network_get_private_key_path(gConfigNetwork.player_name);
+    auto keyPath = network_get_private_key_path(gConfigNetwork.PlayerName);
     if (!File::Exists(keyPath))
     {
         log_error("Key file (%s) was not found. Restart client to re-generate it.", keyPath.c_str());
@@ -2146,7 +2162,7 @@ void NetworkBase::Client_Handle_TOKEN(NetworkConnection& connection, NetworkPack
     // when process dump gets collected at some point in future.
     _key.Unload();
 
-    Client_Send_AUTH(gConfigNetwork.player_name, gCustomPassword, pubkey, signature);
+    Client_Send_AUTH(gConfigNetwork.PlayerName, gCustomPassword, pubkey, signature);
 }
 
 void NetworkBase::Server_Handle_REQUEST_GAMESTATE(NetworkConnection& connection, NetworkPacket& packet)
@@ -2306,7 +2322,7 @@ void NetworkBase::Client_Handle_OBJECTS_LIST(NetworkConnection& connection, Netw
         };
         format_string(objectListMsg, 256, STR_MULTIPLAYER_RECEIVING_OBJECTS_LIST, &args);
 
-        auto intent = Intent(WC_NETWORK_STATUS);
+        auto intent = Intent(WindowClass::NetworkStatus);
         intent.putExtra(INTENT_EXTRA_MESSAGE, std::string{ objectListMsg });
         intent.putExtra(INTENT_EXTRA_CALLBACK, []() -> void { ::GetContext()->GetNetwork().Close(); });
         context_open_intent(&intent);
@@ -2444,7 +2460,7 @@ void NetworkBase::Client_Handle_GAMESTATE(NetworkConnection& connection, Network
                 char str_desync[1024];
                 format_string(str_desync, sizeof(str_desync), STR_DESYNC_REPORT, ft.Data());
 
-                auto intent = Intent(WC_NETWORK_STATUS);
+                auto intent = Intent(WindowClass::NetworkStatus);
                 intent.putExtra(INTENT_EXTRA_MESSAGE, std::string{ str_desync });
                 context_open_intent(&intent);
             }
@@ -2545,7 +2561,7 @@ void NetworkBase::Server_Handle_AUTH(NetworkConnection& connection, NetworkPacke
                 if (verified)
                 {
                     log_verbose("Connection %s: Signature verification ok. Hash %s", hostName, hash.c_str());
-                    if (gConfigNetwork.known_keys_only && _userManager.GetUserByHash(hash) == nullptr)
+                    if (gConfigNetwork.KnownKeysOnly && _userManager.GetUserByHash(hash) == nullptr)
                     {
                         log_verbose("Connection %s: Hash %s, not known", hostName, hash.c_str());
                         connection.AuthStatus = NetworkAuth::UnknownKeyDisallowed;
@@ -2598,7 +2614,7 @@ void NetworkBase::Server_Handle_AUTH(NetworkConnection& connection, NetworkPacke
             }
         }
 
-        if (static_cast<size_t>(gConfigNetwork.maxplayers) <= player_list.size())
+        if (GetNumVisiblePlayers() >= gConfigNetwork.Maxplayers)
         {
             connection.AuthStatus = NetworkAuth::Full;
             log_info("Connection %s: Server is full.", hostName);
@@ -2652,7 +2668,7 @@ void NetworkBase::Client_Handle_MAP([[maybe_unused]] NetworkConnection& connecti
     };
     format_string(str_downloading_map, 256, STR_MULTIPLAYER_DOWNLOADING_MAP, downloading_map_args);
 
-    auto intent = Intent(WC_NETWORK_STATUS);
+    auto intent = Intent(WindowClass::NetworkStatus);
     intent.putExtra(INTENT_EXTRA_MESSAGE, std::string{ str_downloading_map });
     intent.putExtra(INTENT_EXTRA_CALLBACK, []() -> void { ::GetContext()->GetNetwork().Close(); });
     context_open_intent(&intent);
@@ -2663,7 +2679,7 @@ void NetworkBase::Client_Handle_MAP([[maybe_unused]] NetworkConnection& connecti
         // Allow queue processing of game actions again.
         GameActions::ResumeQueue();
 
-        context_force_close_window_by_class(WC_NETWORK_STATUS);
+        context_force_close_window_by_class(WindowClass::NetworkStatus);
         game_unload_scripts();
         game_notify_map_change();
 
@@ -2719,7 +2735,7 @@ bool NetworkBase::LoadMap(IStream* stream)
         importer->Import();
 
         EntityTweener::Get().Reset();
-        AutoCreateMapAnimations();
+        MapAnimationAutoCreate();
 
         gLastAutoSaveUpdate = AUTOSAVE_PAUSE;
         result = true;
@@ -3007,7 +3023,7 @@ void NetworkBase::Server_Handle_PING(NetworkConnection& connection, [[maybe_unus
     if (connection.Player != nullptr)
     {
         connection.Player->Ping = ping;
-        window_invalidate_by_number(WC_PLAYER, connection.Player->Id);
+        window_invalidate_by_number(WindowClass::Player, connection.Player->Id);
     }
 }
 
@@ -3026,7 +3042,7 @@ void NetworkBase::Client_Handle_PINGLIST([[maybe_unused]] NetworkConnection& con
             player->Ping = ping;
         }
     }
-    window_invalidate_by_class(WC_PLAYER);
+    window_invalidate_by_class(WindowClass::Player);
 }
 
 void NetworkBase::Client_Handle_SETDISCONNECTMSG(NetworkConnection& connection, NetworkPacket& packet)
@@ -3107,6 +3123,7 @@ void NetworkBase::Client_Handle_GAMEINFO([[maybe_unused]] NetworkConnection& con
 {
     auto jsonString = packet.ReadString();
     packet >> _serverState.gamestateSnapshotsEnabled;
+    packet >> IsServerPlayerInvisible;
 
     json_t jsonData = Json::FromString(jsonString);
 
@@ -3210,7 +3227,12 @@ uint8_t network_get_current_player_id()
 
 int32_t network_get_num_players()
 {
-    return static_cast<int32_t>(OpenRCT2::GetContext()->GetNetwork().player_list.size());
+    return OpenRCT2::GetContext()->GetNetwork().GetTotalNumPlayers();
+}
+
+int32_t network_get_num_visible_players()
+{
+    return OpenRCT2::GetContext()->GetNetwork().GetNumVisiblePlayers();
 }
 
 const char* network_get_player_name(uint32_t index)
@@ -3460,7 +3482,7 @@ GameActions::Result network_set_player_group(
             userManager.Save();
         }
 
-        window_invalidate_by_number(WC_PLAYER, playerId);
+        window_invalidate_by_number(WindowClass::Player, playerId);
 
         // Log set player group event
         NetworkPlayer* game_command_player = network.GetPlayerByID(actionPlayerId);
@@ -3742,6 +3764,11 @@ int32_t network_get_pickup_peep_old_x(uint8_t playerid)
     return -1;
 }
 
+bool network_is_server_player_invisible()
+{
+    return OpenRCT2::GetContext()->GetNetwork().IsServerPlayerInvisible;
+}
+
 int32_t network_get_current_player_group_index()
 {
     auto& network = OpenRCT2::GetContext()->GetNetwork();
@@ -3798,7 +3825,7 @@ void network_send_game_action(const GameAction* action)
 void network_send_password(const std::string& password)
 {
     auto& network = OpenRCT2::GetContext()->GetNetwork();
-    const auto keyPath = network_get_private_key_path(gConfigNetwork.player_name);
+    const auto keyPath = network_get_private_key_path(gConfigNetwork.PlayerName);
     if (!File::Exists(keyPath))
     {
         log_error("Private key %s missing! Restart the game to generate it.", keyPath.c_str());
@@ -3821,7 +3848,7 @@ void network_send_password(const std::string& password)
     // Don't keep private key in memory. There's no need and it may get leaked
     // when process dump gets collected at some point in future.
     network._key.Unload();
-    network.Client_Send_AUTH(gConfigNetwork.player_name, password, pubkey, signature);
+    network.Client_Send_AUTH(gConfigNetwork.PlayerName, password, pubkey, signature);
 }
 
 void network_set_password(const char* password)
@@ -3976,6 +4003,10 @@ int32_t network_get_num_players()
 {
     return 1;
 }
+int32_t network_get_num_visible_players()
+{
+    return 1;
+}
 const char* network_get_player_name(uint32_t index)
 {
     return "local (OpenRCT2 compiled without MP)";
@@ -4126,6 +4157,10 @@ uint8_t network_get_current_player_id()
 int32_t network_get_current_player_group_index()
 {
     return 0;
+}
+bool network_is_server_player_invisible()
+{
+    return false;
 }
 void network_append_chat_log(std::string_view)
 {

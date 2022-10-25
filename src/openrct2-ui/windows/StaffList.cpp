@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -120,7 +120,7 @@ public:
         CancelTools();
     }
 
-    void OnMouseUp(rct_widgetindex widgetIndex) override
+    void OnMouseUp(WidgetIndex widgetIndex) override
     {
         switch (widgetIndex)
         {
@@ -147,7 +147,7 @@ public:
                 }
                 break;
             case WIDX_STAFF_LIST_MAP:
-                context_open_window(WC_MAP);
+                context_open_window(WindowClass::Map);
                 break;
             case WIDX_STAFF_LIST_QUICK_FIRE:
                 _quickFireMode = !_quickFireMode;
@@ -184,7 +184,7 @@ public:
             InvalidateWidget(WIDX_STAFF_LIST_HANDYMEN_TAB + _selectedTab);
 
             // Enable highlighting of these staff members in map window
-            if (window_find_by_class(WC_MAP) != nullptr)
+            if (window_find_by_class(WindowClass::Map) != nullptr)
             {
                 gWindowMapFlashingFlags |= MapFlashingFlags::StaffListOpen;
                 for (auto peep : EntityList<Staff>())
@@ -203,7 +203,7 @@ public:
         RefreshList();
     }
 
-    void OnMouseDown(rct_widgetindex widgetIndex) override
+    void OnMouseDown(WidgetIndex widgetIndex) override
     {
         switch (widgetIndex)
         {
@@ -228,7 +228,7 @@ public:
         }
     }
 
-    void OnDropdown(rct_widgetindex widgetIndex, int32_t dropdownIndex) override
+    void OnDropdown(WidgetIndex widgetIndex, int32_t dropdownIndex) override
     {
         if (widgetIndex == WIDX_STAFF_LIST_UNIFORM_COLOUR_PICKER)
         {
@@ -252,8 +252,9 @@ public:
         if (GetSelectedStaffType() != StaffType::Entertainer)
         {
             widgets[WIDX_STAFF_LIST_UNIFORM_COLOUR_PICKER].type = WindowWidgetType::ColourBtn;
-            auto spriteIdPalette = SPRITE_ID_PALETTE_COLOUR_1(static_cast<uint32_t>(staff_get_colour(GetSelectedStaffType())));
-            widgets[WIDX_STAFF_LIST_UNIFORM_COLOUR_PICKER].image = spriteIdPalette | IMAGE_TYPE_TRANSPARENT | SPR_PALETTE_BTN;
+            widgets[WIDX_STAFF_LIST_UNIFORM_COLOUR_PICKER].image = GetColourButtonImage(
+                                                                       staff_get_colour(GetSelectedStaffType()))
+                                                                       .ToUInt32();
         }
         SetWidgetPressed(WIDX_STAFF_LIST_QUICK_FIRE, _quickFireMode);
 
@@ -355,7 +356,7 @@ public:
                     auto peep = GetEntity<Staff>(spriteIndex);
                     if (peep != nullptr)
                     {
-                        auto intent = Intent(WC_PEEP);
+                        auto intent = Intent(WindowClass::Peep);
                         intent.putExtra(INTENT_EXTRA_PEEP, peep);
                         context_open_intent(&intent);
                     }
@@ -446,7 +447,7 @@ public:
         }
     }
 
-    void OnToolDown(rct_widgetindex widgetIndex, const ScreenCoordsXY& screenCoords) override
+    void OnToolDown(WidgetIndex widgetIndex, const ScreenCoordsXY& screenCoords) override
     {
         if (widgetIndex == WIDX_STAFF_LIST_SHOW_PATROL_AREA_BUTTON)
         {
@@ -466,7 +467,7 @@ public:
         }
     }
 
-    void OnToolAbort(rct_widgetindex widgetIndex) override
+    void OnToolAbort(WidgetIndex widgetIndex) override
     {
         if (widgetIndex == WIDX_STAFF_LIST_SHOW_PATROL_AREA_BUTTON)
         {
@@ -500,7 +501,7 @@ private:
      */
     void HireNewMember(StaffType staffType, EntertainerCostume entertainerType)
     {
-        bool autoPosition = gConfigGeneral.auto_staff_placement;
+        bool autoPosition = gConfigGeneral.AutoStaffPlacement;
         if (gInputPlaceObjectModifier & PLACE_OBJECT_MODIFIER_SHIFT_Z)
         {
             autoPosition = autoPosition ^ 1;
@@ -511,7 +512,7 @@ private:
         if (staffType == StaffType::Handyman)
         {
             staffOrders = STAFF_ORDERS_SWEEPING | STAFF_ORDERS_WATER_FLOWERS | STAFF_ORDERS_EMPTY_BINS;
-            if (gConfigGeneral.handymen_mow_default)
+            if (gConfigGeneral.HandymenMowByDefault)
             {
                 staffOrders |= STAFF_ORDERS_MOWING;
             }
@@ -529,7 +530,7 @@ private:
             auto actionResult = res->GetData<StaffHireNewActionResult>();
             // Open window for new staff.
             auto* staff = GetEntity<Staff>(actionResult.StaffEntityId);
-            auto intent = Intent(WC_PEEP);
+            auto intent = Intent(WindowClass::Peep);
             intent.putExtra(INTENT_EXTRA_PEEP, staff);
             context_open_intent(&intent);
         });
@@ -590,7 +591,7 @@ private:
     {
         int32_t direction{};
         TileElement* tileElement{};
-        auto footpathCoords = footpath_get_coordinates_from_pos(screenCoords, &direction, &tileElement);
+        auto footpathCoords = FootpathGetCoordinatesFromPos(screenCoords, &direction, &tileElement);
         if (footpathCoords.IsNull())
             return nullptr;
 
@@ -705,12 +706,12 @@ private:
 
 rct_window* WindowStaffListOpen()
 {
-    return WindowFocusOrCreate<StaffListWindow>(WC_STAFF_LIST, WW, WH, WF_10 | WF_RESIZABLE);
+    return WindowFocusOrCreate<StaffListWindow>(WindowClass::StaffList, WW, WH, WF_10 | WF_RESIZABLE);
 }
 
 void WindowStaffListRefresh()
 {
-    auto* window = window_find_by_class(WC_STAFF_LIST);
+    auto* window = window_find_by_class(WindowClass::StaffList);
     if (window != nullptr)
     {
         static_cast<StaffListWindow*>(window)->RefreshList();

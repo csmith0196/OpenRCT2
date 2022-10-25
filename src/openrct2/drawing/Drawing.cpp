@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -858,8 +858,8 @@ void RefreshVideo(bool recreateWindow)
 
 void ToggleWindowedMode()
 {
-    int32_t targetMode = gConfigGeneral.fullscreen_mode == 0 ? 2 : 0;
+    int32_t targetMode = gConfigGeneral.FullscreenMode == 0 ? 2 : 0;
     context_set_fullscreen_mode(targetMode);
-    gConfigGeneral.fullscreen_mode = targetMode;
-    config_save_default();
+    gConfigGeneral.FullscreenMode = targetMode;
+    ConfigSaveDefault();
 }

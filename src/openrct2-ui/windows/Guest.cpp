@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -200,7 +200,7 @@ public:
         }
     }
 
-    void OnMouseUp(rct_widgetindex widx) override
+    void OnMouseUp(WidgetIndex widx) override
     {
         switch (widx)
         {
@@ -225,14 +225,14 @@ public:
                 break;
         }
     }
-    void OnMouseDown(rct_widgetindex widx) override
+    void OnMouseDown(WidgetIndex widx) override
     {
         if (page == WINDOW_GUEST_OVERVIEW)
         {
             OnMouseDownOverview(widx);
         }
     }
-    void OnDropdown(rct_widgetindex widgetIndex, int32_t selectedIndex) override
+    void OnDropdown(WidgetIndex widgetIndex, int32_t selectedIndex) override
     {
         if (page == WINDOW_GUEST_OVERVIEW)
         {
@@ -283,28 +283,28 @@ public:
                 break;
         }
     }
-    void OnToolUpdate(rct_widgetindex widgetIndex, const ScreenCoordsXY& screenCoords) override
+    void OnToolUpdate(WidgetIndex widgetIndex, const ScreenCoordsXY& screenCoords) override
     {
         if (page == WINDOW_GUEST_OVERVIEW)
         {
             OnToolUpdateOverview(widgetIndex, screenCoords);
         }
     }
-    void OnToolDown(rct_widgetindex widgetIndex, const ScreenCoordsXY& screenCoords) override
+    void OnToolDown(WidgetIndex widgetIndex, const ScreenCoordsXY& screenCoords) override
     {
         if (page == WINDOW_GUEST_OVERVIEW)
         {
             OnToolDownOverview(widgetIndex, screenCoords);
         }
     }
-    void OnToolAbort(rct_widgetindex widgetIndex) override
+    void OnToolAbort(WidgetIndex widgetIndex) override
     {
         if (page == WINDOW_GUEST_OVERVIEW)
         {
             OnToolAbortOverview(widgetIndex);
         }
     }
-    void OnTextInput(rct_widgetindex widgetIndex, std::string_view text) override
+    void OnTextInput(WidgetIndex widgetIndex, std::string_view text) override
     {
         if (page == WINDOW_GUEST_OVERVIEW)
         {
@@ -475,7 +475,7 @@ private:
         {
             newDisabledWidgets |= (1ULL << WIDX_TAB_4); // Disable finance tab if no money
         }
-        if (!gConfigGeneral.debugging_tools)
+        if (!gConfigGeneral.DebuggingTools)
         {
             newDisabledWidgets |= (1ULL << WIDX_TAB_7); // Disable debug tab when debug tools not turned on
         }
@@ -606,7 +606,7 @@ private:
         OnViewportRotate();
     }
 
-    void OnMouseUpOverview(rct_widgetindex widgetIndex)
+    void OnMouseUpOverview(WidgetIndex widgetIndex)
     {
         const auto peep = GetGuest();
         if (peep == nullptr)
@@ -630,7 +630,7 @@ private:
                 pickupAction.SetCallback([peepnum = number](const GameAction* ga, const GameActions::Result* result) {
                     if (result->Error != GameActions::Status::Ok)
                         return;
-                    rct_window* wind = window_find_by_number(WC_PEEP, peepnum);
+                    rct_window* wind = window_find_by_number(WindowClass::Peep, peepnum);
                     if (wind != nullptr)
                     {
                         tool_set(*wind, WC_PEEP__WIDX_PICKUP, Tool::Picker);
@@ -657,7 +657,7 @@ private:
         }
     }
 
-    void OnMouseDownOverview(rct_widgetindex widgetIndex)
+    void OnMouseDownOverview(WidgetIndex widgetIndex)
     {
         switch (widgetIndex)
         {
@@ -667,7 +667,7 @@ private:
         }
     }
 
-    void OnDropdownOverview(rct_widgetindex widgetIndex, int32_t dropdownIndex)
+    void OnDropdownOverview(WidgetIndex widgetIndex, int32_t dropdownIndex)
     {
         switch (widgetIndex)
         {
@@ -816,7 +816,7 @@ private:
         {
             auto ft = Formatter();
             peep_thought_set_format_args(&peep->Thoughts[i], ft);
-            DrawTextBasic(&dpiMarquee, { screenPos.x, 0 }, STR_WINDOW_COLOUR_2_STRINGID, ft, { FontSpriteBase::SMALL });
+            DrawTextBasic(&dpiMarquee, { screenPos.x, 0 }, STR_WINDOW_COLOUR_2_STRINGID, ft, { FontStyle::Small });
         }
     }
 
@@ -896,7 +896,7 @@ private:
         }
     }
 
-    void OnTextInputOverview(rct_widgetindex widgetIndex, std::string_view text)
+    void OnTextInputOverview(WidgetIndex widgetIndex, std::string_view text)
     {
         if (widgetIndex != WIDX_RENAME)
             return;
@@ -908,23 +908,23 @@ private:
         GameActions::Execute(&gameAction);
     }
 
-    void OnToolUpdateOverview(rct_widgetindex widgetIndex, const ScreenCoordsXY& screenCoords)
+    void OnToolUpdateOverview(WidgetIndex widgetIndex, const ScreenCoordsXY& screenCoords)
     {
         if (widgetIndex != WIDX_PICKUP)
             return;
 
-        map_invalidate_selection_rect();
+        MapInvalidateSelectionRect();
 
         gMapSelectFlags &= ~MAP_SELECT_FLAG_ENABLE;
 
-        auto mapCoords = footpath_get_coordinates_from_pos({ screenCoords.x, screenCoords.y + 16 }, nullptr, nullptr);
+        auto mapCoords = FootpathGetCoordinatesFromPos({ screenCoords.x, screenCoords.y + 16 }, nullptr, nullptr);
         if (!mapCoords.IsNull())
         {
             gMapSelectFlags |= MAP_SELECT_FLAG_ENABLE;
             gMapSelectType = MAP_SELECT_TYPE_FULL;
             gMapSelectPositionA = mapCoords;
             gMapSelectPositionB = mapCoords;
-            map_invalidate_selection_rect();
+            MapInvalidateSelectionRect();
         }
 
         gPickupPeepImage = ImageId();
@@ -952,13 +952,13 @@ private:
         gPickupPeepImage = ImageId(baseImageId, peep->TshirtColour, peep->TrousersColour);
     }
 
-    void OnToolDownOverview(rct_widgetindex widgetIndex, const ScreenCoordsXY& screenCoords)
+    void OnToolDownOverview(WidgetIndex widgetIndex, const ScreenCoordsXY& screenCoords)
     {
         if (widgetIndex != WIDX_PICKUP)
             return;
 
         TileElement* tileElement;
-        auto destCoords = footpath_get_coordinates_from_pos({ screenCoords.x, screenCoords.y + 16 }, nullptr, &tileElement);
+        auto destCoords = FootpathGetCoordinatesFromPos({ screenCoords.x, screenCoords.y + 16 }, nullptr, &tileElement);
 
         if (destCoords.IsNull())
             return;
@@ -976,7 +976,7 @@ private:
         GameActions::Execute(&pickupAction);
     }
 
-    void OnToolAbortOverview(rct_widgetindex widgetIndex)
+    void OnToolAbortOverview(WidgetIndex widgetIndex)
     {
         if (widgetIndex != WIDX_PICKUP)
             return;
@@ -1040,7 +1040,7 @@ private:
     void StatsBarsDraw(int32_t value, const ScreenCoordsXY& origCoords, rct_drawpixelinfo& dpi, int32_t colour, bool blinkFlag)
     {
         auto coords = origCoords;
-        if (font_get_line_height(FontSpriteBase::MEDIUM) > 10)
+        if (font_get_line_height(FontStyle::Medium) > 10)
         {
             coords.y += 1;
         }
@@ -1293,7 +1293,7 @@ private:
         if (index >= no_list_items)
             return;
 
-        auto intent = Intent(WC_RIDE);
+        auto intent = Intent(WindowClass::Ride);
         intent.putExtra(INTENT_EXTRA_RIDE_ID, list_item_positions[index]);
         context_open_intent(&intent);
     }
@@ -1594,7 +1594,7 @@ private:
 
             auto ft = Formatter();
             peep_thought_set_format_args(&thought, ft);
-            screenCoords.y += DrawTextWrapped(&dpi, screenCoords, widgWidth, STR_BLACK_STRING, ft, { FontSpriteBase::SMALL });
+            screenCoords.y += DrawTextWrapped(&dpi, screenCoords, widgWidth, STR_BLACK_STRING, ft, { FontStyle::Small });
 
             // If this is the last visible line end drawing.
             if (screenCoords.y > windowPos.y + widgets[WIDX_PAGE_BACKGROUND].bottom - 32)
@@ -1652,7 +1652,7 @@ private:
         {
             case ShopItem::Balloon:
                 ft.Rewind();
-                ft.Add<uint32_t>(SPRITE_ID_PALETTE_COLOUR_1(guest.BalloonColour) | GetShopItemDescriptor(item).Image);
+                ft.Add<uint32_t>(ImageId(GetShopItemDescriptor(item).Image, (guest.BalloonColour)).ToUInt32());
                 break;
             case ShopItem::Photo:
                 invRide = get_ride(guest.Photo1RideRef);
@@ -1666,7 +1666,7 @@ private:
                 break;
             case ShopItem::Umbrella:
                 ft.Rewind();
-                ft.Add<uint32_t>(SPRITE_ID_PALETTE_COLOUR_1(guest.UmbrellaColour) | GetShopItemDescriptor(item).Image);
+                ft.Add<uint32_t>(ImageId(GetShopItemDescriptor(item).Image, (guest.UmbrellaColour)).ToUInt32());
                 break;
             case ShopItem::Voucher:
                 switch (guest.VoucherType)
@@ -1705,11 +1705,11 @@ private:
                 break;
             case ShopItem::Hat:
                 ft.Rewind();
-                ft.Add<uint32_t>(SPRITE_ID_PALETTE_COLOUR_1(guest.HatColour) | GetShopItemDescriptor(item).Image);
+                ft.Add<uint32_t>(ImageId(GetShopItemDescriptor(item).Image, (guest.HatColour)).ToUInt32());
                 break;
             case ShopItem::TShirt:
                 ft.Rewind();
-                ft.Add<uint32_t>(SPRITE_ID_PALETTE_COLOUR_1(guest.TshirtColour) | GetShopItemDescriptor(item).Image);
+                ft.Add<uint32_t>(ImageId(GetShopItemDescriptor(item).Image, (guest.TshirtColour)).ToUInt32());
                 break;
             case ShopItem::Photo2:
                 invRide = get_ride(guest.Photo2RideRef);
@@ -1924,14 +1924,15 @@ rct_window* WindowGuestOpen(Peep* peep)
         return WindowStaffOpen(peep);
     }
 
-    auto* window = static_cast<GuestWindow*>(window_bring_to_front_by_number(WC_PEEP, peep->sprite_index.ToUnderlying()));
+    auto* window = static_cast<GuestWindow*>(
+        window_bring_to_front_by_number(WindowClass::Peep, peep->sprite_index.ToUnderlying()));
     if (window == nullptr)
     {
         int32_t windowWidth = 192;
-        if (gConfigGeneral.debugging_tools)
+        if (gConfigGeneral.DebuggingTools)
             windowWidth += TabWidth;
 
-        window = WindowCreate<GuestWindow>(WC_PEEP, windowWidth, 157, WF_RESIZABLE);
+        window = WindowCreate<GuestWindow>(WindowClass::Peep, windowWidth, 157, WF_RESIZABLE);
         if (window == nullptr)
         {
             return nullptr;

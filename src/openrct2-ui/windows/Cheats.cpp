@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -361,7 +361,7 @@ public:
     void OnOpen() override
     {
         SetPage(WINDOW_CHEATS_PAGE_MONEY);
-        _parkRatingSpinnerValue = get_forced_park_rating() >= 0 ? get_forced_park_rating() : 999;
+        _parkRatingSpinnerValue = ParkGetForcedRating() >= 0 ? ParkGetForcedRating() : 999;
     }
 
     void OnUpdate() override
@@ -370,7 +370,7 @@ public:
         InvalidateWidget(WIDX_TAB_1 + page);
     }
 
-    void OnMouseDown(rct_widgetindex widgetIndex) override
+    void OnMouseDown(WidgetIndex widgetIndex) override
     {
         switch (page)
         {
@@ -383,7 +383,7 @@ public:
         }
     }
 
-    void OnMouseUp(rct_widgetindex widgetIndex) override
+    void OnMouseUp(WidgetIndex widgetIndex) override
     {
         switch (widgetIndex)
         {
@@ -416,7 +416,7 @@ public:
         }
     }
 
-    void OnDropdown(rct_widgetindex widgetIndex, int32_t selectedIndex) override
+    void OnDropdown(WidgetIndex widgetIndex, int32_t selectedIndex) override
     {
         if (page == WINDOW_CHEATS_PAGE_MISC)
         {
@@ -471,7 +471,7 @@ public:
             case WINDOW_CHEATS_PAGE_MISC:
                 widgets[WIDX_OPEN_CLOSE_PARK].text = (gParkFlags & PARK_FLAGS_PARK_OPEN) ? STR_CHEAT_CLOSE_PARK
                                                                                          : STR_CHEAT_OPEN_PARK;
-                SetCheckboxValue(WIDX_FORCE_PARK_RATING, get_forced_park_rating() >= 0);
+                SetCheckboxValue(WIDX_FORCE_PARK_RATING, ParkGetForcedRating() >= 0);
                 SetCheckboxValue(WIDX_FREEZE_WEATHER, gCheatsFreezeWeather);
                 SetCheckboxValue(WIDX_NEVERENDING_MARKETING, gCheatsNeverendingMarketing);
                 SetCheckboxValue(WIDX_DISABLE_PLANT_AGING, gCheatsDisablePlantAging);
@@ -577,7 +577,7 @@ public:
         }
     }
 
-    void OnTextInput(rct_widgetindex widgetIndex, std::string_view text) override
+    void OnTextInput(WidgetIndex widgetIndex, std::string_view text) override
     {
         if (page == WINDOW_CHEATS_PAGE_MONEY && widgetIndex == WIDX_MONEY_SPINNER)
         {
@@ -590,7 +590,7 @@ public:
         }
     }
 
-    OpenRCT2String OnTooltip(rct_widgetindex widgetIndex, StringId fallback) override
+    OpenRCT2String OnTooltip(WidgetIndex widgetIndex, StringId fallback) override
     {
         if (page == WINDOW_CHEATS_PAGE_RIDES && widgetIndex == WIDX_UNLOCK_OPERATING_LIMITS)
         {
@@ -687,7 +687,7 @@ private:
         }
     }
 
-    void OnMouseDownMoney(rct_widgetindex widgetIndex)
+    void OnMouseDownMoney(WidgetIndex widgetIndex)
     {
         switch (widgetIndex)
         {
@@ -743,14 +743,14 @@ private:
             {
                 auto setDateAction = ParkSetDateAction(_yearSpinnerValue, _monthSpinnerValue, _daySpinnerValue);
                 GameActions::Execute(&setDateAction);
-                window_invalidate_by_class(WC_BOTTOM_TOOLBAR);
+                window_invalidate_by_class(WindowClass::BottomToolbar);
                 break;
             }
             case WIDX_DATE_RESET:
             {
                 auto setDateAction = ParkSetDateAction(1, 1, 1);
                 GameActions::Execute(&setDateAction);
-                window_invalidate_by_class(WC_BOTTOM_TOOLBAR);
+                window_invalidate_by_class(WindowClass::BottomToolbar);
                 InvalidateWidget(WIDX_YEAR_BOX);
                 InvalidateWidget(WIDX_MONTH_BOX);
                 InvalidateWidget(WIDX_DAY_BOX);
@@ -759,7 +759,7 @@ private:
         }
     }
 
-    void OnMouseUpMoney(rct_widgetindex widgetIndex)
+    void OnMouseUpMoney(WidgetIndex widgetIndex)
     {
         switch (widgetIndex)
         {
@@ -781,7 +781,7 @@ private:
         }
     }
 
-    void OnMouseDownMisc(rct_widgetindex widgetIndex)
+    void OnMouseDownMisc(WidgetIndex widgetIndex)
     {
         auto* widget = &widgets[widgetIndex];
         switch (widgetIndex)
@@ -789,7 +789,7 @@ private:
             case WIDX_INCREASE_PARK_RATING:
                 _parkRatingSpinnerValue = std::min(999, 10 * (_parkRatingSpinnerValue / 10 + 1));
                 InvalidateWidget(WIDX_PARK_RATING_SPINNER);
-                if (get_forced_park_rating() >= 0)
+                if (ParkGetForcedRating() >= 0)
                 {
                     auto setCheatAction = SetCheatAction(CheatType::SetForcedParkRating, _parkRatingSpinnerValue);
                     GameActions::Execute(&setCheatAction);
@@ -798,7 +798,7 @@ private:
             case WIDX_DECREASE_PARK_RATING:
                 _parkRatingSpinnerValue = std::max(0, 10 * (_parkRatingSpinnerValue / 10 - 1));
                 InvalidateWidget(WIDX_PARK_RATING_SPINNER);
-                if (get_forced_park_rating() >= 0)
+                if (ParkGetForcedRating() >= 0)
                 {
                     CheatsSet(CheatType::SetForcedParkRating, _parkRatingSpinnerValue);
                 }
@@ -840,7 +840,7 @@ private:
         }
     }
 
-    void OnMouseUpMisc(rct_widgetindex widgetIndex)
+    void OnMouseUpMisc(WidgetIndex widgetIndex)
     {
         switch (widgetIndex)
         {
@@ -887,7 +887,7 @@ private:
                 CheatsSet(CheatType::NeverEndingMarketing, !gCheatsNeverendingMarketing);
                 break;
             case WIDX_FORCE_PARK_RATING:
-                if (get_forced_park_rating() >= 0)
+                if (ParkGetForcedRating() >= 0)
                 {
                     CheatsSet(CheatType::SetForcedParkRating, -1);
                 }
@@ -899,7 +899,7 @@ private:
         }
     }
 
-    void OnDropdownMisc(rct_widgetindex widgetIndex, int32_t dropdownIndex)
+    void OnDropdownMisc(WidgetIndex widgetIndex, int32_t dropdownIndex)
     {
         if (dropdownIndex == -1)
         {
@@ -927,7 +927,7 @@ private:
         }
     }
 
-    void OnMouseUpGuests(rct_widgetindex widgetIndex)
+    void OnMouseUpGuests(WidgetIndex widgetIndex)
     {
         switch (widgetIndex)
         {
@@ -1009,7 +1009,7 @@ private:
         }
     }
 
-    void OnMouseUpRides(rct_widgetindex widgetIndex)
+    void OnMouseUpRides(WidgetIndex widgetIndex)
     {
         switch (widgetIndex)
         {
@@ -1103,10 +1103,10 @@ private:
 
 rct_window* WindowCheatsOpen()
 {
-    auto* window = window_bring_to_front_by_class(WC_CHEATS);
+    auto* window = window_bring_to_front_by_class(WindowClass::Cheats);
     if (window == nullptr)
     {
-        window = WindowCreate<CheatsWindow>(WC_CHEATS, ScreenCoordsXY(32, 32), WW, WH);
+        window = WindowCreate<CheatsWindow>(WindowClass::Cheats, ScreenCoordsXY(32, 32), WW, WH);
     }
     return window;
 }

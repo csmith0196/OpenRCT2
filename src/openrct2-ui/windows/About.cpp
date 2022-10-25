@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2021 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -98,7 +98,7 @@ public:
         SetPage(WINDOW_ABOUT_PAGE_OPENRCT2);
     }
 
-    void OnMouseUp(rct_widgetindex widgetIndex) override
+    void OnMouseUp(WidgetIndex widgetIndex) override
     {
         switch (widgetIndex)
         {
@@ -113,7 +113,7 @@ public:
                 OpenRCT2::GetContext()->GetUiContext()->OpenURL("https://discord.gg/ZXZd8D8");
                 break;
             case WIDX_CHANGELOG:
-                context_open_window(WC_CHANGELOG);
+                context_open_window(WindowClass::Changelog);
                 break;
             case WIDX_NEW_VERSION:
                 context_open_window_view(WV_NEW_VERSION_INFO);
@@ -194,7 +194,7 @@ private:
         auto const& versionPlaceholder = widgets[WIDX_VERSION];
         auto versionPlaceHolderWidth = versionPlaceholder.right - versionPlaceholder.left;
         auto centreX = versionPlaceholder.left + versionPlaceHolderWidth / 2;
-        auto centreY = (versionPlaceholder.top + versionPlaceholder.bottom - font_get_line_height(FontSpriteBase::MEDIUM)) / 2;
+        auto centreY = (versionPlaceholder.top + versionPlaceholder.bottom - font_get_line_height(FontStyle::Medium)) / 2;
         auto centrePos = windowPos + ScreenCoordsXY(centreX, centreY);
         DrawTextWrapped(&dpi, centrePos, versionPlaceHolderWidth, STR_STRING, ft, { colours[1], TextAlignment::CENTRE });
 
@@ -215,7 +215,7 @@ private:
 
         auto screenCoords = ScreenCoordsXY{ windowPos.x + 200, yPage + 5 };
 
-        int32_t lineHeight = font_get_line_height(FontSpriteBase::MEDIUM);
+        int32_t lineHeight = font_get_line_height(FontStyle::Medium);
 
         // Credits
         DrawTextBasic(&dpi, screenCoords, STR_COPYRIGHT_CS, {}, { TextAlignment::CENTRE });
@@ -249,5 +249,5 @@ private:
  */
 rct_window* WindowAboutOpen()
 {
-    return WindowFocusOrCreate<AboutWindow>(WC_ABOUT, WW, WH, WF_CENTRE_SCREEN);
+    return WindowFocusOrCreate<AboutWindow>(WindowClass::About, WW, WH, WF_CENTRE_SCREEN);
 }

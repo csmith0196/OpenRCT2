@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -843,6 +843,13 @@ struct RCT12ResearchItem
     ResearchItem ToResearchItem() const;
 };
 assert_struct_size(RCT12ResearchItem, 5);
+
+struct RCT12VehicleColour
+{
+    uint8_t body_colour;
+    uint8_t trim_colour;
+};
+assert_struct_size(RCT12VehicleColour, 2);
 
 #pragma pack(pop)
 

@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -60,7 +60,7 @@ private:
     {
         number = 1;
         window_visit_each([&](rct_window* w) {
-            if (w != nullptr && w != this && w->classification == WC_VIEWPORT)
+            if (w != nullptr && w != this && w->classification == WindowClass::Viewport)
             {
                 if (w->number >= number)
                     number = w->number + 1;
@@ -117,7 +117,7 @@ public:
         // widget_invalidate(*this, WIDX_VIEWPORT);
     }
 
-    void OnMouseUp(rct_widgetindex widgetIndex) override
+    void OnMouseUp(WidgetIndex widgetIndex) override
     {
         switch (widgetIndex)
         {
@@ -144,7 +144,7 @@ public:
                 {
                     auto info = get_map_coordinates_from_pos(
                         { windowPos.x + (width / 2), windowPos.y + (height / 2) }, ViewportInteractionItemAll);
-                    window_scroll_to_location(*mainWindow, { info.Loc, tile_element_height(info.Loc) });
+                    window_scroll_to_location(*mainWindow, { info.Loc, TileElementHeight(info.Loc) });
                 }
                 break;
         }
@@ -221,7 +221,7 @@ rct_window* WindowViewportOpen()
     int32_t width = (screenWidth / 2);
     int32_t height = (screenHeight / 2);
 
-    auto* w = WindowCreate<ViewportWindow>(WC_VIEWPORT, std::max(WW, width), std::max(WH, height), WF_RESIZABLE);
+    auto* w = WindowCreate<ViewportWindow>(WindowClass::Viewport, std::max(WW, width), std::max(WH, height), WF_RESIZABLE);
 
     if (w != nullptr)
         return w;

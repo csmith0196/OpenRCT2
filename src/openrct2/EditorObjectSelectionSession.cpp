@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -103,7 +103,7 @@ static void setup_track_designer_objects()
         {
             *selectionFlags |= ObjectSelectionFlags::Flag6;
 
-            for (uint8_t rideType : item->RideInfo.RideType)
+            for (auto rideType : item->RideInfo.RideType)
             {
                 if (rideType != RIDE_TYPE_NULL)
                 {
@@ -141,7 +141,7 @@ void setup_in_use_selection_flags()
     }
 
     tile_element_iterator iter;
-    tile_element_iterator_begin(&iter);
+    TileElementIteratorBegin(&iter);
     do
     {
         ObjectEntryIndex type;
@@ -230,7 +230,7 @@ void setup_in_use_selection_flags()
                 break;
             }
         }
-    } while (tile_element_iterator_next(&iter));
+    } while (TileElementIteratorNext(&iter));
 
     for (auto& ride : GetRideManager())
     {
@@ -491,7 +491,7 @@ void finish_object_selection()
     else
     {
         set_all_scenery_items_invented();
-        scenery_set_default_placement_configuration();
+        ScenerySetDefaultPlacementConfiguration();
         gEditorStep = EditorStep::LandscapeEditor;
         gfx_invalidate_screen();
     }

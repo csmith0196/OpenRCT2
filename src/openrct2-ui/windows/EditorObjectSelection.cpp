@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -269,7 +269,7 @@ public:
 
         widgets[WIDX_FILTER_TEXT_BOX].string = _filter_string;
 
-        _filter_flags = gConfigInterface.object_selection_filter_flags;
+        _filter_flags = gConfigInterface.ObjectSelectionFilterFlags;
         std::fill_n(_filter_string, sizeof(_filter_string), 0x00);
 
         WindowInitScrollWidgets(*this);
@@ -330,7 +330,7 @@ public:
             widget_invalidate(*this, WIDX_FILTER_TEXT_BOX);
         }
 
-        for (rct_widgetindex i = WIDX_FILTER_RIDE_TAB_TRANSPORT; i <= WIDX_FILTER_RIDE_TAB_STALL; i++)
+        for (WidgetIndex i = WIDX_FILTER_RIDE_TAB_TRANSPORT; i <= WIDX_FILTER_RIDE_TAB_STALL; i++)
         {
             if (!IsWidgetPressed(i))
                 continue;
@@ -348,7 +348,7 @@ public:
      *
      * rct2: 0x006AAFAB
      */
-    void OnMouseUp(rct_widgetindex widgetIndex) override
+    void OnMouseUp(WidgetIndex widgetIndex) override
     {
         switch (widgetIndex)
         {
@@ -367,8 +367,8 @@ public:
                 break;
             case WIDX_FILTER_RIDE_TAB_ALL:
                 _filter_flags |= FILTER_RIDES;
-                gConfigInterface.object_selection_filter_flags = _filter_flags;
-                config_save_default();
+                gConfigInterface.ObjectSelectionFilterFlags = _filter_flags;
+                ConfigSaveDefault();
 
                 FilterUpdateCounts();
                 VisibleListRefresh();
@@ -385,8 +385,8 @@ public:
             case WIDX_FILTER_RIDE_TAB_STALL:
                 _filter_flags &= ~FILTER_RIDES;
                 _filter_flags |= (1 << (widgetIndex - WIDX_FILTER_RIDE_TAB_TRANSPORT + _numSourceGameItems));
-                gConfigInterface.object_selection_filter_flags = _filter_flags;
-                config_save_default();
+                gConfigInterface.ObjectSelectionFilterFlags = _filter_flags;
+                ConfigSaveDefault();
 
                 FilterUpdateCounts();
                 VisibleListRefresh();
@@ -410,7 +410,7 @@ public:
                 }
                 Invalidate();
 
-                auto intent = Intent(WC_LOADSAVE);
+                auto intent = Intent(WindowClass::Loadsave);
                 intent.putExtra(INTENT_EXTRA_LOADSAVE_TYPE, LOADSAVETYPE_LOAD | LOADSAVETYPE_TRACK);
                 context_open_intent(&intent);
                 break;
@@ -464,7 +464,7 @@ public:
         window_set_resize(*this, WW, WH, 1200, 1000);
     }
 
-    void OnMouseDown(rct_widgetindex widgetIndex) override
+    void OnMouseDown(WidgetIndex widgetIndex) override
     {
         int32_t numSelectionItems = 0;
 
@@ -524,7 +524,7 @@ public:
         }
     }
 
-    void OnDropdown(rct_widgetindex widgetIndex, int32_t dropdownIndex) override
+    void OnDropdown(WidgetIndex widgetIndex, int32_t dropdownIndex) override
     {
         if (dropdownIndex == -1)
             return;
@@ -546,8 +546,8 @@ public:
                 {
                     _filter_flags ^= (1 << dropdownIndex);
                 }
-                gConfigInterface.object_selection_filter_flags = _filter_flags;
-                config_save_default();
+                gConfigInterface.ObjectSelectionFilterFlags = _filter_flags;
+                ConfigSaveDefault();
 
                 FilterUpdateCounts();
                 scrolls->v_top = 0;
@@ -576,7 +576,7 @@ public:
     {
         // Used for in-game object selection cheat to prevent crashing the game
         // when windows attempt to draw objects that don't exist any more
-        window_close_all_except_class(WC_EDITOR_OBJECT_SELECTION);
+        window_close_all_except_class(WindowClass::EditorObjectSelection);
 
         int32_t selected_object = GetObjectFromObjectSelection(GetSelectedObjectType(), screenCoords.y);
         if (selected_object == -1)
@@ -721,15 +721,14 @@ public:
                 if (!(gScreenFlags & SCREEN_FLAGS_TRACK_MANAGER) && (*listItem.flags & ObjectSelectionFlags::Selected))
                 {
                     screenCoords.x = 2;
-                    FontSpriteBase fontSpriteBase = highlighted ? FontSpriteBase::MEDIUM_EXTRA_DARK
-                                                                : FontSpriteBase::MEDIUM_DARK;
+                    auto darkness = highlighted ? TextDarkness::ExtraDark : TextDarkness::Dark;
                     colour_t colour2 = NOT_TRANSLUCENT(colours[1]);
                     if (*listItem.flags & (ObjectSelectionFlags::InUse | ObjectSelectionFlags::AlwaysRequired))
                         colour2 |= COLOUR_FLAG_INSET;
 
                     gfx_draw_string(
                         &dpi, screenCoords, static_cast<const char*>(CheckBoxMarkString),
-                        { static_cast<colour_t>(colour2), fontSpriteBase });
+                        { static_cast<colour_t>(colour2), FontStyle::Medium, darkness });
                 }
 
                 screenCoords.x = gScreenFlags & SCREEN_FLAGS_TRACK_MANAGER ? 0 : 15;
@@ -738,11 +737,11 @@ public:
                 auto buffer = strchr(bufferWithColour, '\0');
 
                 colour_t colour = COLOUR_BLACK;
-                FontSpriteBase fontSpriteBase = FontSpriteBase::MEDIUM;
+                auto darkness = TextDarkness::Regular;
                 if (*listItem.flags & ObjectSelectionFlags::Flag6)
                 {
                     colour = colours[1] & 0x7F;
-                    fontSpriteBase = FontSpriteBase::MEDIUM_DARK;
+                    darkness = TextDarkness::Dark;
                 }
 
                 int32_t width_limit = widgets[WIDX_LIST].width() - screenCoords.x;
@@ -755,7 +754,8 @@ public:
                     safe_strcpy(buffer, language_get_string(rideTypeStringId), 256 - (buffer - bufferWithColour));
                     auto ft = Formatter();
                     ft.Add<const char*>(gCommonStringFormatBuffer);
-                    DrawTextEllipsised(&dpi, screenCoords, width_limit - 15, STR_STRING, ft, { colour, fontSpriteBase });
+                    DrawTextEllipsised(
+                        &dpi, screenCoords, width_limit - 15, STR_STRING, ft, { colour, FontStyle::Medium, darkness });
                     screenCoords.x = widgets[WIDX_LIST_SORT_RIDE].left - widgets[WIDX_LIST].left;
                 }
 
@@ -770,7 +770,7 @@ public:
                 }
                 auto ft = Formatter();
                 ft.Add<const char*>(gCommonStringFormatBuffer);
-                DrawTextEllipsised(&dpi, screenCoords, width_limit, STR_STRING, ft, { colour, fontSpriteBase });
+                DrawTextEllipsised(&dpi, screenCoords, width_limit, STR_STRING, ft, { colour, FontStyle::Medium, darkness });
             }
             screenCoords.y += SCROLLABLE_ROW_HEIGHT;
         }
@@ -780,7 +780,7 @@ public:
      *
      * rct2: 0x006AB058
      */
-    OpenRCT2String OnTooltip(const rct_widgetindex widgetIndex, const StringId fallback) override
+    OpenRCT2String OnTooltip(const WidgetIndex widgetIndex, const StringId fallback) override
     {
         if (widgetIndex >= WIDX_TAB_1 && static_cast<size_t>(widgetIndex) < WIDX_TAB_1 + std::size(ObjectSelectionPages))
         {
@@ -791,7 +791,7 @@ public:
         return { fallback, {} };
     }
 
-    void OnTextInput(rct_widgetindex widgetIndex, std::string_view text) override
+    void OnTextInput(WidgetIndex widgetIndex, std::string_view text) override
     {
         if (widgetIndex != WIDX_FILTER_TEXT_BOX || text.empty())
             return;
@@ -915,8 +915,8 @@ public:
 
         if (ridePage)
         {
-            for (int32_t i = 0; i < 7; i++)
-                pressed_widgets &= ~(1 << (WIDX_FILTER_RIDE_TAB_ALL + i));
+            for (int32_t i = WIDX_FILTER_RIDE_TAB_ALL; i <= WIDX_FILTER_RIDE_TAB_STALL; i++)
+                pressed_widgets &= ~(1 << i);
 
             if ((_filter_flags & FILTER_RIDES) == FILTER_RIDES)
                 pressed_widgets |= (1ULL << WIDX_FILTER_RIDE_TAB_ALL);
@@ -1256,7 +1256,15 @@ private:
     void DrawDebugData(rct_drawpixelinfo* dpi)
     {
         ObjectListItem* listItem = &_listItems[selected_list_item];
-        auto screenPos = windowPos + ScreenCoordsXY{ width - 5, height - (LIST_ROW_HEIGHT * 5) };
+        auto screenPos = windowPos + ScreenCoordsXY{ width - 5, height - (LIST_ROW_HEIGHT * 6) };
+
+        // Draw fallback image warning
+        if (_loadedObject && _loadedObject->UsesFallbackImages())
+        {
+            DrawTextBasic(dpi, screenPos, STR_OBJECT_USES_FALLBACK_IMAGES, {}, { COLOUR_WHITE, TextAlignment::RIGHT });
+        }
+        screenPos.y += LIST_ROW_HEIGHT;
+
         // Draw ride type.
         if (GetSelectedObjectType() == ObjectType::Ride)
         {
@@ -1404,7 +1412,7 @@ private:
     {
         if (item->Type == ObjectType::Ride)
         {
-            uint8_t rideType = 0;
+            ride_type_t rideType = 0;
             for (int32_t i = 0; i < RCT2::ObjectLimits::MaxRideTypesPerRideEntry; i++)
             {
                 if (item->RideInfo.RideType[i] != RIDE_TYPE_NULL)
@@ -1500,10 +1508,10 @@ private:
             ;
 
         rct_ride_entry* ride_entry = get_ride_entry(entry_index);
-        uint8_t ride_type = ride_entry_get_first_non_null_ride_type(ride_entry);
+        auto rideType = ride_entry->GetFirstNonNullRideType();
 
-        auto intent = Intent(WC_TRACK_DESIGN_LIST);
-        intent.putExtra(INTENT_EXTRA_RIDE_TYPE, ride_type);
+        auto intent = Intent(WindowClass::TrackDesignList);
+        intent.putExtra(INTENT_EXTRA_RIDE_TYPE, rideType);
         intent.putExtra(INTENT_EXTRA_RIDE_ENTRY_INDEX, entry_index);
         context_open_intent(&intent);
     }
@@ -1516,7 +1524,7 @@ private:
 rct_window* WindowEditorObjectSelectionOpen()
 {
     return WindowFocusOrCreate<EditorObjectSelectionWindow>(
-        WC_EDITOR_OBJECT_SELECTION, 755, 400, WF_10 | WF_RESIZABLE | WF_CENTRE_SCREEN);
+        WindowClass::EditorObjectSelection, 755, 400, WF_10 | WF_RESIZABLE | WF_CENTRE_SCREEN);
 }
 
 static bool VisibleListSortRideName(const ObjectListItem& a, const ObjectListItem& b)
@@ -1539,7 +1547,7 @@ static StringId GetRideTypeStringId(const ObjectRepositoryItem* item)
     StringId result = STR_NONE;
     for (int32_t i = 0; i < RCT2::ObjectLimits::MaxRideTypesPerRideEntry; i++)
     {
-        uint8_t rideType = item->RideInfo.RideType[i];
+        auto rideType = item->RideInfo.RideType[i];
         if (rideType != RIDE_TYPE_NULL)
         {
             result = GetRideTypeDescriptor(rideType).Naming.Name;
@@ -1558,6 +1566,7 @@ void EditorLoadSelectedObjects()
     auto& objManager = OpenRCT2::GetContext()->GetObjectManager();
     int32_t numItems = static_cast<int32_t>(object_repository_get_items_count());
     const ObjectRepositoryItem* items = object_repository_get_items();
+    bool showFallbackWarning = false;
     for (int32_t i = 0; i < numItems; i++)
     {
         if (_objectSelectionFlags[i] & ObjectSelectionFlags::Selected)
@@ -1580,13 +1589,17 @@ void EditorLoadSelectedObjects()
                     if (objectType == ObjectType::Ride)
                     {
                         rct_ride_entry* rideEntry = get_ride_entry(entryIndex);
-                        uint8_t rideType = ride_entry_get_first_non_null_ride_type(rideEntry);
+                        auto rideType = rideEntry->GetFirstNonNullRideType();
                         ResearchCategory category = static_cast<ResearchCategory>(GetRideTypeDescriptor(rideType).Category);
                         research_insert_ride_entry(rideType, entryIndex, category, true);
                     }
                     else if (objectType == ObjectType::SceneryGroup)
                     {
                         research_insert_scenery_group_entry(entryIndex, true);
+                    }
+                    if (loadedObject->UsesFallbackImages())
+                    {
+                        showFallbackWarning = true;
                     }
                 }
             }
@@ -1597,4 +1610,6 @@ void EditorLoadSelectedObjects()
         // Reloads the default cyan water palette if no palette was selected.
         load_palette();
     }
+    if (showFallbackWarning)
+        context_show_error(STR_OBJECT_SELECTION_FALLBACK_IMAGES_WARNING, STR_EMPTY, Formatter::Common());
 }

@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -92,13 +92,13 @@ GameActions::Result SetCheatAction::Execute() const
     {
         case CheatType::SandboxMode:
             gCheatsSandboxMode = _param1 != 0;
-            window_invalidate_by_class(WC_MAP);
-            window_invalidate_by_class(WC_FOOTPATH);
+            window_invalidate_by_class(WindowClass::Map);
+            window_invalidate_by_class(WindowClass::Footpath);
             break;
         case CheatType::DisableClearanceChecks:
             gCheatsDisableClearanceChecks = _param1 != 0;
             // Required to update the clearance checks overlay on the Cheats button.
-            window_invalidate_by_class(WC_TOP_TOOLBAR);
+            window_invalidate_by_class(WindowClass::TopToolbar);
             break;
         case CheatType::DisableSupportLimits:
             gCheatsDisableSupportLimits = _param1 != 0;
@@ -198,7 +198,7 @@ GameActions::Result SetCheatAction::Execute() const
             break;
         case CheatType::ForceWeather:
             // Todo - make sure this is safe
-            climate_force_weather(WeatherType{ static_cast<uint8_t>(_param1) });
+            ClimateForceWeather(WeatherType{ static_cast<uint8_t>(_param1) });
             break;
         case CheatType::FreezeWeather:
             gCheatsFreezeWeather = _param1 != 0;
@@ -207,17 +207,17 @@ GameActions::Result SetCheatAction::Execute() const
             gCheatsNeverendingMarketing = _param1 != 0;
             break;
         case CheatType::OpenClosePark:
-            ParkSetOpen(!park_is_open());
+            ParkSetOpen(!ParkIsOpen());
             break;
         case CheatType::HaveFun:
             gScenarioObjective.Type = OBJECTIVE_HAVE_FUN;
             break;
         case CheatType::SetForcedParkRating:
-            set_forced_park_rating(_param1);
+            ParkSetForcedRating(_param1);
             break;
         case CheatType::AllowArbitraryRideTypeChanges:
             gCheatsAllowArbitraryRideTypeChanges = _param1 != 0;
-            window_invalidate_by_class(WC_RIDE);
+            window_invalidate_by_class(WindowClass::Ride);
             break;
         case CheatType::OwnAllLand:
             OwnAllLand();
@@ -250,10 +250,10 @@ GameActions::Result SetCheatAction::Execute() const
 
     if (network_get_mode() == NETWORK_MODE_NONE)
     {
-        config_save_default();
+        ConfigSaveDefault();
     }
 
-    window_invalidate_by_class(WC_CHEATS);
+    window_invalidate_by_class(WindowClass::Cheats);
     return GameActions::Result();
 }
 
@@ -357,11 +357,11 @@ ParametersRange SetCheatAction::GetParameterRange(CheatType cheatType) const
 
 void SetCheatAction::SetGrassLength(int32_t length) const
 {
-    for (int32_t y = 0; y < MAXIMUM_MAP_SIZE_TECHNICAL; y++)
+    for (int32_t y = 0; y < gMapSize.y; y++)
     {
-        for (int32_t x = 0; x < MAXIMUM_MAP_SIZE_TECHNICAL; x++)
+        for (int32_t x = 0; x < gMapSize.x; x++)
         {
-            auto surfaceElement = map_get_surface_element_at(TileCoordsXY{ x, y }.ToCoordsXY());
+            auto surfaceElement = MapGetSurfaceElementAt(TileCoordsXY{ x, y }.ToCoordsXY());
             if (surfaceElement == nullptr)
                 continue;
 
@@ -380,14 +380,14 @@ void SetCheatAction::WaterPlants() const
 {
     tile_element_iterator it;
 
-    tile_element_iterator_begin(&it);
+    TileElementIteratorBegin(&it);
     do
     {
         if (it.element->GetType() == TileElementType::SmallScenery)
         {
             it.element->AsSmallScenery()->SetAge(0);
         }
-    } while (tile_element_iterator_next(&it));
+    } while (TileElementIteratorNext(&it));
 
     gfx_invalidate_screen();
 }
@@ -396,7 +396,7 @@ void SetCheatAction::FixVandalism() const
 {
     tile_element_iterator it;
 
-    tile_element_iterator_begin(&it);
+    TileElementIteratorBegin(&it);
     do
     {
         if (it.element->GetType() != TileElementType::Path)
@@ -406,7 +406,7 @@ void SetCheatAction::FixVandalism() const
             continue;
 
         it.element->AsPath()->SetIsBroken(false);
-    } while (tile_element_iterator_next(&it));
+    } while (TileElementIteratorNext(&it));
 
     gfx_invalidate_screen();
 }
@@ -419,7 +419,7 @@ void SetCheatAction::RemoveLitter() const
     }
 
     tile_element_iterator it{};
-    tile_element_iterator_begin(&it);
+    TileElementIteratorBegin(&it);
     do
     {
         if (it.element->GetType() != TileElementType::Path)
@@ -433,7 +433,7 @@ void SetCheatAction::RemoveLitter() const
         if (pathBitEntry != nullptr && pathBitEntry->flags & PATH_BIT_FLAG_IS_BIN)
             path->SetAdditionStatus(0xFF);
 
-    } while (tile_element_iterator_next(&it));
+    } while (TileElementIteratorNext(&it));
 
     gfx_invalidate_screen();
 }
@@ -463,7 +463,7 @@ void SetCheatAction::RenewRides() const
     {
         ride.Renew();
     }
-    window_invalidate_by_class(WC_RIDE);
+    window_invalidate_by_class(WindowClass::Ride);
 }
 
 void SetCheatAction::MakeDestructible() const
@@ -473,7 +473,7 @@ void SetCheatAction::MakeDestructible() const
         ride.lifecycle_flags &= ~RIDE_LIFECYCLE_INDESTRUCTIBLE;
         ride.lifecycle_flags &= ~RIDE_LIFECYCLE_INDESTRUCTIBLE_TRACK;
     }
-    window_invalidate_by_class(WC_RIDE);
+    window_invalidate_by_class(WindowClass::Ride);
 }
 
 void SetCheatAction::ResetRideCrashStatus() const
@@ -484,7 +484,7 @@ void SetCheatAction::ResetRideCrashStatus() const
         ride.lifecycle_flags &= ~RIDE_LIFECYCLE_CRASHED;
         ride.last_crash_type = RIDE_CRASH_TYPE_NONE;
     }
-    window_invalidate_by_class(WC_RIDE);
+    window_invalidate_by_class(WindowClass::Ride);
 }
 
 void SetCheatAction::Set10MinuteInspection() const
@@ -494,7 +494,7 @@ void SetCheatAction::Set10MinuteInspection() const
         // Set inspection interval to 10 minutes
         ride.inspection_interval = RIDE_INSPECTION_EVERY_10_MINUTES;
     }
-    window_invalidate_by_class(WC_RIDE);
+    window_invalidate_by_class(WindowClass::Ride);
 }
 
 void SetCheatAction::SetScenarioNoMoney(bool enabled) const
@@ -508,29 +508,29 @@ void SetCheatAction::SetScenarioNoMoney(bool enabled) const
         gParkFlags &= ~PARK_FLAGS_NO_MONEY;
     }
     // Invalidate all windows that have anything to do with finance
-    window_invalidate_by_class(WC_RIDE);
-    window_invalidate_by_class(WC_PEEP);
-    window_invalidate_by_class(WC_PARK_INFORMATION);
-    window_invalidate_by_class(WC_FINANCES);
-    window_invalidate_by_class(WC_BOTTOM_TOOLBAR);
-    window_invalidate_by_class(WC_TOP_TOOLBAR);
-    window_invalidate_by_class(WC_CHEATS);
+    window_invalidate_by_class(WindowClass::Ride);
+    window_invalidate_by_class(WindowClass::Peep);
+    window_invalidate_by_class(WindowClass::ParkInformation);
+    window_invalidate_by_class(WindowClass::Finances);
+    window_invalidate_by_class(WindowClass::BottomToolbar);
+    window_invalidate_by_class(WindowClass::TopToolbar);
+    window_invalidate_by_class(WindowClass::Cheats);
 }
 
-void SetCheatAction::SetMoney(money32 amount) const
+void SetCheatAction::SetMoney(money64 amount) const
 {
     gCash = amount;
 
-    window_invalidate_by_class(WC_FINANCES);
-    window_invalidate_by_class(WC_BOTTOM_TOOLBAR);
+    window_invalidate_by_class(WindowClass::Finances);
+    window_invalidate_by_class(WindowClass::BottomToolbar);
 }
 
-void SetCheatAction::AddMoney(money32 amount) const
+void SetCheatAction::AddMoney(money64 amount) const
 {
-    gCash = add_clamp_money32(gCash, amount);
+    gCash = add_clamp_money64(gCash, amount);
 
-    window_invalidate_by_class(WC_FINANCES);
-    window_invalidate_by_class(WC_BOTTOM_TOOLBAR);
+    window_invalidate_by_class(WindowClass::Finances);
+    window_invalidate_by_class(WindowClass::BottomToolbar);
 }
 
 void SetCheatAction::ClearLoan() const
@@ -550,7 +550,7 @@ void SetCheatAction::GenerateGuests(int32_t count) const
     {
         park.GenerateGuest();
     }
-    window_invalidate_by_class(WC_BOTTOM_TOOLBAR);
+    window_invalidate_by_class(WindowClass::BottomToolbar);
 }
 
 void SetCheatAction::SetGuestParameter(int32_t parameter, int32_t value) const
@@ -621,7 +621,7 @@ void SetCheatAction::GiveObjectToGuests(int32_t object) const
                 break;
         }
     }
-    window_invalidate_by_class(WC_PEEP);
+    window_invalidate_by_class(WindowClass::Peep);
 }
 
 void SetCheatAction::RemoveAllGuests() const
@@ -668,7 +668,7 @@ void SetCheatAction::RemoveAllGuests() const
         guest->Remove();
     }
 
-    window_invalidate_by_class(WC_RIDE);
+    window_invalidate_by_class(WindowClass::Ride);
     gfx_invalidate_screen();
 }
 
@@ -690,7 +690,7 @@ void SetCheatAction::OwnAllLand() const
     {
         for (coords.x = min.x; coords.x <= max.x; coords.x += COORDS_XY_STEP)
         {
-            auto* surfaceElement = map_get_surface_element_at(coords);
+            auto* surfaceElement = MapGetSurfaceElementAt(coords);
             if (surfaceElement == nullptr)
                 continue;
 
@@ -699,14 +699,14 @@ void SetCheatAction::OwnAllLand() const
                 continue;
 
             int32_t baseZ = surfaceElement->GetBaseZ();
-            int32_t destOwnership = check_max_allowable_land_rights_for_tile({ coords, baseZ });
+            int32_t destOwnership = CheckMaxAllowableLandRightsForTile({ coords, baseZ });
 
             // only own tiles that were not set to 0
             if (destOwnership != OWNERSHIP_UNOWNED)
             {
                 surfaceElement->SetOwnership(destOwnership);
-                update_park_fences_around_tile(coords);
-                map_invalidate_tile({ coords, baseZ, baseZ + 16 });
+                ParkUpdateFencesAroundTile(coords);
+                MapInvalidateTile({ coords, baseZ, baseZ + 16 });
             }
         }
     }
@@ -714,17 +714,17 @@ void SetCheatAction::OwnAllLand() const
     // Completely unown peep spawn points
     for (const auto& spawn : gPeepSpawns)
     {
-        auto* surfaceElement = map_get_surface_element_at(spawn);
+        auto* surfaceElement = MapGetSurfaceElementAt(spawn);
         if (surfaceElement != nullptr)
         {
             surfaceElement->SetOwnership(OWNERSHIP_UNOWNED);
-            update_park_fences_around_tile(spawn);
+            ParkUpdateFencesAroundTile(spawn);
             uint16_t baseZ = surfaceElement->GetBaseZ();
-            map_invalidate_tile({ spawn, baseZ, baseZ + 16 });
+            MapInvalidateTile({ spawn, baseZ, baseZ + 16 });
         }
     }
 
-    map_count_remaining_land_rights();
+    MapCountRemainingLandRights();
 }
 
 void SetCheatAction::ParkSetOpen(bool isOpen) const

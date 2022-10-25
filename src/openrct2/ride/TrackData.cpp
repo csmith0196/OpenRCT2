@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -7183,6 +7183,8 @@ namespace OpenRCT2
 
         const TrackElementDescriptor& GetTrackElementDescriptor(const uint32_t type)
         {
+            if (type >= _trackElementDescriptors.size())
+                return _trackElementDescriptors[0];
             return _trackElementDescriptors[type];
         }
 

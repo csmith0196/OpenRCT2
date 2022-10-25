@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -192,7 +192,7 @@ bool ViewportInteractionLeftClick(const ScreenCoordsXY& screenCoords)
                 case EntityType::Guest:
                 case EntityType::Staff:
                 {
-                    auto intent = Intent(WC_PEEP);
+                    auto intent = Intent(WindowClass::Peep);
                     intent.putExtra(INTENT_EXTRA_PEEP, entity);
                     context_open_intent(&intent);
                     break;
@@ -231,7 +231,7 @@ bool ViewportInteractionLeftClick(const ScreenCoordsXY& screenCoords)
             return true;
         }
         case ViewportInteractionItem::ParkEntrance:
-            context_open_window(WC_PARK_INFORMATION);
+            context_open_window(WindowClass::ParkInformation);
             return true;
         default:
             return false;
@@ -356,7 +356,7 @@ InteractionInfo ViewportInteractionGetItemRight(const ScreenCoordsXY& screenCoor
             else
             {
                 // FIXME: Why does it *2 the value?
-                if (!gCheatsSandboxMode && !map_is_location_owned({ info.Loc, tileElement->GetBaseZ() * 2 }))
+                if (!gCheatsSandboxMode && !MapIsLocationOwned({ info.Loc, tileElement->GetBaseZ() * 2 }))
                 {
                     info.SpriteType = ViewportInteractionItem::None;
                     return info;
@@ -428,7 +428,7 @@ InteractionInfo ViewportInteractionGetItemRight(const ScreenCoordsXY& screenCoor
             auto banner = tileElement->AsBanner()->GetBanner();
             if (banner != nullptr)
             {
-                auto* bannerEntry = get_banner_entry(banner->type);
+                auto* bannerEntry = GetBannerEntry(banner->type);
 
                 auto ft = Formatter();
                 ft.Add<StringId>(STR_MAP_TOOLTIP_BANNER_STRINGID_STRINGID);
@@ -446,7 +446,8 @@ InteractionInfo ViewportInteractionGetItemRight(const ScreenCoordsXY& screenCoor
 
     if (!(input_test_flag(INPUT_FLAG_6)) || !(input_test_flag(INPUT_FLAG_TOOL_ACTIVE)))
     {
-        if (window_find_by_class(WC_RIDE_CONSTRUCTION) == nullptr && window_find_by_class(WC_FOOTPATH) == nullptr)
+        if (window_find_by_class(WindowClass::RideConstruction) == nullptr
+            && window_find_by_class(WindowClass::Footpath) == nullptr)
         {
             info.SpriteType = ViewportInteractionItem::None;
             return info;
@@ -565,7 +566,7 @@ bool ViewportInteractionRightClick(const ScreenCoordsXY& screenCoords)
         break;
         case ViewportInteractionItem::Ride:
             tileElement = { info.Loc, info.Element };
-            ride_modify(&tileElement);
+            ride_modify(tileElement);
             break;
         case ViewportInteractionItem::Scenery:
             ViewportInteractionRemoveScenery(info.Element, info.Loc);
@@ -617,11 +618,11 @@ static void ViewportInteractionRemoveFootpath(TileElement* tileElement, const Co
 
     auto z = tileElement->GetBaseZ();
 
-    w = window_find_by_class(WC_FOOTPATH);
+    w = window_find_by_class(WindowClass::Footpath);
     if (w != nullptr)
-        footpath_provisional_update();
+        FootpathProvisionalUpdate();
 
-    tileElement2 = map_get_first_element_at(mapCoords);
+    tileElement2 = MapGetFirstElementAt(mapCoords);
     if (tileElement2 == nullptr)
         return;
     do
@@ -792,7 +793,7 @@ CoordsXY ViewportInteractionGetTileStartAtCursor(const ScreenCoordsXY& screenCoo
         int16_t z = waterHeight;
         if (info.SpriteType != ViewportInteractionItem::Water)
         {
-            z = tile_element_height(mapPos);
+            z = TileElementHeight(mapPos);
         }
         mapPos = viewport_coord_to_map_coord(initialVPPos, z);
         mapPos.x = std::clamp(mapPos.x, initialPos.x, initialPos.x + 31);

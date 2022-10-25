@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -30,8 +30,12 @@ static constexpr const StringId WINDOW_TITLE = STR_SELECT_SCENARIO;
 static constexpr const int32_t WW = 734;
 static constexpr const int32_t WH = 384;
 static constexpr const int32_t SidebarWidth = 180;
+static constexpr const int32_t TabWidth = 92;
+static constexpr const int32_t TabHeight = 34;
+static constexpr const int32_t WidgetsStart = 17;
+static constexpr const int32_t TabsStart = WidgetsStart;
 #define INITIAL_NUM_UNLOCKED_SCENARIOS 5
-constexpr const uint8_t NumTabs = 8;
+constexpr const uint8_t NumTabs = 9;
 
 // clang-format off
 enum class ListItemType : uint8_t
@@ -72,21 +76,23 @@ enum {
     WIDX_TAB6,
     WIDX_TAB7,
     WIDX_TAB8,
+    WIDX_TAB9,
     WIDX_SCENARIOLIST
 };
 
 static rct_widget window_scenarioselect_widgets[] = {
     WINDOW_SHIM(WINDOW_TITLE, WW, WH),
-    MakeWidget     ({  0, 50}, { WW, 284}, WindowWidgetType::ImgBtn, WindowColour::Secondary),                  // tab content panel
-    MakeRemapWidget({  3, 17}, { 91,  34}, WindowWidgetType::Tab,    WindowColour::Secondary, SPR_TAB_LARGE),   // tab 1
-    MakeRemapWidget({ 94, 17}, { 91,  34}, WindowWidgetType::Tab,    WindowColour::Secondary, SPR_TAB_LARGE),   // tab 2
-    MakeRemapWidget({185, 17}, { 91,  34}, WindowWidgetType::Tab,    WindowColour::Secondary, SPR_TAB_LARGE),   // tab 3
-    MakeRemapWidget({276, 17}, { 91,  34}, WindowWidgetType::Tab,    WindowColour::Secondary, SPR_TAB_LARGE),   // tab 4
-    MakeRemapWidget({367, 17}, { 91,  34}, WindowWidgetType::Tab,    WindowColour::Secondary, SPR_TAB_LARGE),   // tab 5
-    MakeRemapWidget({458, 17}, {136,  34}, WindowWidgetType::Tab,    WindowColour::Secondary, SPR_TAB_LARGE),   // tab 6
-    MakeRemapWidget({594, 17}, { 91,  34}, WindowWidgetType::Tab,    WindowColour::Secondary, SPR_TAB_LARGE),   // tab 7
-    MakeRemapWidget({685, 17}, { 91,  34}, WindowWidgetType::Tab,    WindowColour::Secondary, SPR_TAB_LARGE),   // tab 8
-    MakeWidget     ({  3, 54}, { WW - SidebarWidth, 276 }, WindowWidgetType::Scroll, WindowColour::Secondary, SCROLL_VERTICAL), // level list
+    MakeWidget     ({ TabWidth + 1, WidgetsStart }, { WW, 284}, WindowWidgetType::Resize, WindowColour::Secondary),                  // tab content panel
+    MakeRemapWidget({  3, TabsStart + (TabHeight * 0) }, { TabWidth,  TabHeight}, WindowWidgetType::Tab,    WindowColour::Secondary, SPR_G2_SIDEWAYS_TAB),   // tab 1
+    MakeRemapWidget({  3, TabsStart + (TabHeight * 1) }, { TabWidth,  TabHeight}, WindowWidgetType::Tab,    WindowColour::Secondary, SPR_G2_SIDEWAYS_TAB),   // tab 2
+    MakeRemapWidget({  3, TabsStart + (TabHeight * 2) }, { TabWidth,  TabHeight}, WindowWidgetType::Tab,    WindowColour::Secondary, SPR_G2_SIDEWAYS_TAB),   // tab 3
+    MakeRemapWidget({  3, TabsStart + (TabHeight * 3) }, { TabWidth,  TabHeight}, WindowWidgetType::Tab,    WindowColour::Secondary, SPR_G2_SIDEWAYS_TAB),   // tab 4
+    MakeRemapWidget({  3, TabsStart + (TabHeight * 4) }, { TabWidth,  TabHeight}, WindowWidgetType::Tab,    WindowColour::Secondary, SPR_G2_SIDEWAYS_TAB),   // tab 5
+    MakeRemapWidget({  3, TabsStart + (TabHeight * 5) }, { TabWidth,  TabHeight}, WindowWidgetType::Tab,    WindowColour::Secondary, SPR_G2_SIDEWAYS_TAB),   // tab 6
+    MakeRemapWidget({  3, TabsStart + (TabHeight * 6) }, { TabWidth,  TabHeight}, WindowWidgetType::Tab,    WindowColour::Secondary, SPR_G2_SIDEWAYS_TAB),   // tab 7
+    MakeRemapWidget({  3, TabsStart + (TabHeight * 7) }, { TabWidth,  TabHeight}, WindowWidgetType::Tab,    WindowColour::Secondary, SPR_G2_SIDEWAYS_TAB),   // tab 8
+    MakeRemapWidget({  3, TabsStart + (TabHeight * 8) }, { TabWidth,  TabHeight}, WindowWidgetType::Tab,    WindowColour::Secondary, SPR_G2_SIDEWAYS_TAB),   // tab 9
+    MakeWidget     ({  TabWidth + 3, WidgetsStart + 1 }, { WW - SidebarWidth, 276 }, WindowWidgetType::Scroll, WindowColour::Secondary, SCROLL_VERTICAL), // level list
     WIDGETS_END,
 };
 
@@ -98,14 +104,15 @@ static constexpr const StringId ScenarioOriginStringIds[] = {
     STR_SCENARIO_CATEGORY_RCT2_WW,
     STR_SCENARIO_CATEGORY_RCT2_TT,
     STR_SCENARIO_CATEGORY_REAL_PARKS,
+    STR_SCENARIO_CATEGORY_EXTRAS_PARKS,
     STR_SCENARIO_CATEGORY_OTHER_PARKS,
 };
 
 static void WindowScenarioselectInitTabs(rct_window *w);
 
 static void WindowScenarioselectClose(rct_window *w);
-static void WindowScenarioselectMouseup(rct_window *w, rct_widgetindex widgetIndex);
-static void WindowScenarioselectMousedown(rct_window *w, rct_widgetindex widgetIndex, rct_widget* widget);
+static void WindowScenarioselectMouseup(rct_window *w, WidgetIndex widgetIndex);
+static void WindowScenarioselectMousedown(rct_window *w, WidgetIndex widgetIndex, rct_widget* widget);
 static void WindowScenarioselectScrollgetsize(rct_window *w, int32_t scrollIndex, int32_t *width, int32_t *height);
 static void WindowScenarioselectScrollmousedown(rct_window *w, int32_t scrollIndex, const ScreenCoordsXY& screenCoords);
 static void WindowScenarioselectScrollmouseover(rct_window *w, int32_t scrollIndex, const ScreenCoordsXY& screenCoords);
@@ -118,7 +125,7 @@ static bool ScenarioSelectUseSmallFont()
     return ThemeGetFlags() & UITHEME_FLAG_USE_ALTERNATIVE_SCENARIO_SELECT_FONT;
 }
 
-static rct_window_event_list window_scenarioselect_events([](auto& events)
+static WindowEventList window_scenarioselect_events([](auto& events)
 {
     events.close = &WindowScenarioselectClose;
     events.mouse_up = &WindowScenarioselectMouseup;
@@ -143,24 +150,15 @@ static bool _showLockedInformation = false;
 static bool _titleEditor = false;
 static bool _disableLocking{};
 
-static int32_t ScenarioSelectGetWindowWidth()
-{
-    // Shrink the window if we're showing scenarios by difficulty level.
-    if (gConfigGeneral.scenario_select_mode == SCENARIO_SELECT_MODE_DIFFICULTY && !_titleEditor)
-        return 610;
-
-    return WW;
-}
-
 rct_window* WindowScenarioselectOpen(scenarioselect_callback callback, bool titleEditor)
 {
     if (_titleEditor != titleEditor)
     {
         _titleEditor = titleEditor;
-        window_close_by_class(WC_SCENARIO_SELECT);
+        window_close_by_class(WindowClass::ScenarioSelect);
     }
 
-    auto window = window_bring_to_front_by_class(WC_SCENARIO_SELECT);
+    auto window = window_bring_to_front_by_class(WindowClass::ScenarioSelect);
     if (window != nullptr)
         return window;
 
@@ -175,8 +173,6 @@ rct_window* WindowScenarioselectOpen(scenarioselect_callback callback, bool titl
 rct_window* WindowScenarioselectOpen(std::function<void(std::string_view)> callback, bool titleEditor, bool disableLocking)
 {
     rct_window* window;
-    int32_t windowWidth;
-    int32_t windowHeight = WH;
 
     _callback = callback;
     _disableLocking = disableLocking;
@@ -184,11 +180,8 @@ rct_window* WindowScenarioselectOpen(std::function<void(std::string_view)> callb
     // Load scenario list
     scenario_repository_scan();
 
-    windowWidth = ScenarioSelectGetWindowWidth();
-
     window = WindowCreateCentred(
-        windowWidth, windowHeight, &window_scenarioselect_events, WC_SCENARIO_SELECT,
-        WF_10 | (titleEditor ? WF_STICK_TO_FRONT : 0));
+        WW, WH, &window_scenarioselect_events, WindowClass::ScenarioSelect, WF_10 | (titleEditor ? WF_STICK_TO_FRONT : 0));
     window->widgets = window_scenarioselect_widgets;
 
     WindowScenarioselectInitTabs(window);
@@ -211,7 +204,7 @@ static void WindowScenarioselectInitTabs(rct_window* w)
     for (size_t i = 0; i < numScenarios; i++)
     {
         const scenario_index_entry* scenario = scenario_repository_get_by_index(i);
-        if (gConfigGeneral.scenario_select_mode == SCENARIO_SELECT_MODE_ORIGIN || _titleEditor)
+        if (gConfigGeneral.ScenarioSelectMode == SCENARIO_SELECT_MODE_ORIGIN || _titleEditor)
         {
             if (_titleEditor && scenario->source_game == ScenarioSource::Other)
                 continue;
@@ -228,9 +221,9 @@ static void WindowScenarioselectInitTabs(rct_window* w)
         }
     }
 
-    if (showPages & (1 << gConfigInterface.scenarioselect_last_tab))
+    if (showPages & (1 << gConfigInterface.ScenarioselectLastTab))
     {
-        w->selected_tab = gConfigInterface.scenarioselect_last_tab;
+        w->selected_tab = gConfigInterface.ScenarioselectLastTab;
     }
     else
     {
@@ -241,7 +234,7 @@ static void WindowScenarioselectInitTabs(rct_window* w)
         }
     }
 
-    int32_t x = 3;
+    int32_t y = TabsStart;
     for (int32_t i = 0; i < NumTabs; i++)
     {
         auto& widget = w->widgets[i + WIDX_TAB1];
@@ -252,9 +245,9 @@ static void WindowScenarioselectInitTabs(rct_window* w)
         }
 
         widget.type = WindowWidgetType::Tab;
-        widget.left = x;
-        widget.right = x + 90;
-        x += 91;
+        widget.top = y;
+        widget.bottom = y + (TabHeight - 1);
+        y += TabHeight;
     }
 }
 
@@ -264,7 +257,7 @@ static void WindowScenarioselectClose(rct_window* w)
     _listItems.shrink_to_fit();
 }
 
-static void WindowScenarioselectMouseup(rct_window* w, rct_widgetindex widgetIndex)
+static void WindowScenarioselectMouseup(rct_window* w, WidgetIndex widgetIndex)
 {
     if (widgetIndex == WIDX_CLOSE)
     {
@@ -272,14 +265,14 @@ static void WindowScenarioselectMouseup(rct_window* w, rct_widgetindex widgetInd
     }
 }
 
-static void WindowScenarioselectMousedown(rct_window* w, rct_widgetindex widgetIndex, rct_widget* widget)
+static void WindowScenarioselectMousedown(rct_window* w, WidgetIndex widgetIndex, rct_widget* widget)
 {
-    if (widgetIndex >= WIDX_TAB1 && widgetIndex <= WIDX_TAB8)
+    if (widgetIndex >= WIDX_TAB1 && widgetIndex <= WIDX_TAB9)
     {
         w->selected_tab = widgetIndex - 4;
         w->highlighted_scenario = nullptr;
-        gConfigInterface.scenarioselect_last_tab = w->selected_tab;
-        config_save_default();
+        gConfigInterface.ScenarioselectLastTab = w->selected_tab;
+        ConfigSaveDefault();
         InitialiseListItems(w);
         w->Invalidate();
         window_event_resize_call(w);
@@ -295,10 +288,10 @@ static int32_t GetScenarioListItemSize()
         return 24;
 
     // Scenario title
-    int32_t lineHeight = font_get_line_height(FontSpriteBase::MEDIUM);
+    int32_t lineHeight = font_get_line_height(FontStyle::Medium);
 
     // 'Completed by' line
-    lineHeight += font_get_line_height(FontSpriteBase::SMALL);
+    lineHeight += font_get_line_height(FontStyle::Small);
 
     return lineHeight;
 }
@@ -415,7 +408,7 @@ static void WindowScenarioselectInvalidate(rct_window* w)
 {
     w->pressed_widgets &= ~(
         (1ULL << WIDX_CLOSE) | (1ULL << WIDX_TAB1) | (1ULL << WIDX_TAB2) | (1ULL << WIDX_TAB3) | (1ULL << WIDX_TAB4)
-        | (1ULL << WIDX_TAB5) | (1ULL << WIDX_TAB6) | (1ULL << WIDX_TAB7) | (1ULL << WIDX_TAB8));
+        | (1ULL << WIDX_TAB5) | (1ULL << WIDX_TAB6) | (1ULL << WIDX_TAB7) | (1ULL << WIDX_TAB8) | (1ULL << WIDX_TAB9));
 
     w->pressed_widgets |= 1LL << (w->selected_tab + WIDX_TAB1);
 
@@ -431,7 +424,7 @@ static void WindowScenarioselectInvalidate(rct_window* w)
     window_scenarioselect_widgets[WIDX_BACKGROUND].bottom = windowHeight - 1;
     window_scenarioselect_widgets[WIDX_TABCONTENT].bottom = windowHeight - 1;
 
-    const int32_t bottomMargin = gConfigGeneral.debugging_tools ? 17 : 5;
+    const int32_t bottomMargin = gConfigGeneral.DebuggingTools ? 17 : 5;
     window_scenarioselect_widgets[WIDX_SCENARIOLIST].bottom = windowHeight - bottomMargin;
 }
 
@@ -443,7 +436,7 @@ static void WindowScenarioselectPaint(rct_window* w, rct_drawpixelinfo* dpi)
     WindowDrawWidgets(*w, dpi);
 
     format = ScenarioSelectUseSmallFont() ? STR_SMALL_WINDOW_COLOUR_2_STRINGID : STR_WINDOW_COLOUR_2_STRINGID;
-    FontSpriteBase fontSpriteBase = ScenarioSelectUseSmallFont() ? FontSpriteBase::SMALL : FontSpriteBase::MEDIUM;
+    FontStyle fontStyle = ScenarioSelectUseSmallFont() ? FontStyle::Small : FontStyle::Medium;
 
     // Text for each tab
     for (uint32_t i = 0; i < std::size(ScenarioOriginStringIds); i++)
@@ -453,7 +446,7 @@ static void WindowScenarioselectPaint(rct_window* w, rct_drawpixelinfo* dpi)
             continue;
 
         auto ft = Formatter();
-        if (gConfigGeneral.scenario_select_mode == SCENARIO_SELECT_MODE_ORIGIN || _titleEditor)
+        if (gConfigGeneral.ScenarioSelectMode == SCENARIO_SELECT_MODE_ORIGIN || _titleEditor)
         {
             ft.Add<StringId>(ScenarioOriginStringIds[i]);
         }
@@ -463,7 +456,7 @@ static void WindowScenarioselectPaint(rct_window* w, rct_drawpixelinfo* dpi)
         }
 
         ScreenCoordsXY stringCoords(widget->midX() + w->windowPos.x, widget->midY() + w->windowPos.y - 3);
-        DrawTextWrapped(dpi, stringCoords, 87, format, ft, { COLOUR_AQUAMARINE, fontSpriteBase, TextAlignment::CENTRE });
+        DrawTextWrapped(dpi, stringCoords, 87, format, ft, { COLOUR_AQUAMARINE, fontStyle, TextAlignment::CENTRE });
     }
 
     // Return if no scenario highlighted
@@ -480,20 +473,30 @@ static void WindowScenarioselectPaint(rct_window* w, rct_drawpixelinfo* dpi)
                 dpi, screenPos + ScreenCoordsXY{ 85, 0 }, 170, STR_SCENARIO_LOCKED, {}, { TextAlignment::CENTRE });
             DrawTextWrapped(dpi, screenPos + ScreenCoordsXY{ 0, 15 }, 170, STR_SCENARIO_LOCKED_DESC);
         }
+        else
+        {
+            // Show general information about how to start.
+            auto screenPos = w->windowPos
+                + ScreenCoordsXY{ window_scenarioselect_widgets[WIDX_SCENARIOLIST].right + 4,
+                                  window_scenarioselect_widgets[WIDX_TABCONTENT].top + 5 };
+
+            DrawTextWrapped(dpi, screenPos + ScreenCoordsXY{ 0, 15 }, 170, STR_SCENARIO_HOVER_HINT);
+        }
         return;
     }
 
     // Scenario path
-    if (gConfigGeneral.debugging_tools)
+    if (gConfigGeneral.DebuggingTools)
     {
         utf8 path[MAX_PATH];
 
-        shorten_path(path, sizeof(path), scenario->path, w->width - 6, FontSpriteBase::MEDIUM);
+        shorten_path(path, sizeof(path), scenario->path, w->width - 6 - TabWidth, FontStyle::Medium);
 
         const utf8* pathPtr = path;
         auto ft = Formatter();
         ft.Add<const char*>(pathPtr);
-        DrawTextBasic(dpi, w->windowPos + ScreenCoordsXY{ 3, w->height - 3 - 11 }, STR_STRING, ft, { w->colours[1] });
+        DrawTextBasic(
+            dpi, w->windowPos + ScreenCoordsXY{ TabWidth + 3, w->height - 3 - 11 }, STR_STRING, ft, { w->colours[1] });
     }
 
     // Scenario name
@@ -568,7 +571,7 @@ static void WindowScenarioselectScrollpaint(rct_window* w, rct_drawpixelinfo* dp
     const int32_t scenarioItemHeight = GetScenarioListItemSize();
 
     // Scenario title
-    int32_t scenarioTitleHeight = font_get_line_height(FontSpriteBase::MEDIUM);
+    int32_t scenarioTitleHeight = font_get_line_height(FontStyle::Medium);
 
     int32_t y = 0;
     for (const auto& listItem : _listItems)
@@ -610,10 +613,11 @@ static void WindowScenarioselectScrollpaint(rct_window* w, rct_drawpixelinfo* dp
                 ft.Add<StringId>(STR_STRING);
                 ft.Add<char*>(buffer);
                 colour_t colour = isDisabled ? w->colours[1] | COLOUR_FLAG_INSET : COLOUR_BLACK;
-                FontSpriteBase fontSpriteBase = isDisabled ? FontSpriteBase::MEDIUM_DARK : FontSpriteBase::MEDIUM;
+                auto darkness = isDisabled ? TextDarkness::Dark : TextDarkness::Regular;
                 const auto scrollCentre = window_scenarioselect_widgets[WIDX_SCENARIOLIST].width() / 2;
 
-                DrawTextBasic(dpi, { scrollCentre, y + 1 }, format, ft, { colour, fontSpriteBase, TextAlignment::CENTRE });
+                DrawTextBasic(
+                    dpi, { scrollCentre, y + 1 }, format, ft, { colour, FontStyle::Medium, TextAlignment::CENTRE, darkness });
 
                 // Check if scenario is completed
                 if (isCompleted)
@@ -636,7 +640,7 @@ static void WindowScenarioselectScrollpaint(rct_window* w, rct_drawpixelinfo* dp
                     ft.Add<char*>(buffer);
                     DrawTextBasic(
                         dpi, { scrollCentre, y + scenarioTitleHeight + 1 }, format, ft,
-                        { FontSpriteBase::SMALL, TextAlignment::CENTRE });
+                        { FontStyle::Small, TextAlignment::CENTRE });
                 }
 
                 y += scenarioItemHeight;
@@ -660,7 +664,7 @@ static void DrawCategoryHeading(
     // Get string dimensions
     utf8* buffer = gCommonStringFormatBuffer;
     format_string(buffer, 256, stringId, nullptr);
-    int32_t categoryStringHalfWidth = (gfx_get_string_width(buffer, FontSpriteBase::MEDIUM) / 2) + 4;
+    int32_t categoryStringHalfWidth = (gfx_get_string_width(buffer, FontStyle::Medium) / 2) + 4;
     int32_t strLeft = centreX - categoryStringHalfWidth;
     int32_t strRight = centreX + categoryStringHalfWidth;
 
@@ -708,7 +712,7 @@ static void InitialiseListItems(rct_window* w)
 
         // Category heading
         StringId headingStringId = STR_NONE;
-        if (gConfigGeneral.scenario_select_mode == SCENARIO_SELECT_MODE_ORIGIN || _titleEditor)
+        if (gConfigGeneral.ScenarioSelectMode == SCENARIO_SELECT_MODE_ORIGIN || _titleEditor)
         {
             if (w->selected_tab != static_cast<uint8_t>(ScenarioSource::Real) && currentHeading != scenario->category)
             {
@@ -787,7 +791,7 @@ static void InitialiseListItems(rct_window* w)
     {
         bool megaParkLocked = (rct1CompletedScenarios & rct1RequiredCompletedScenarios) != rct1RequiredCompletedScenarios;
         _listItems[megaParkListItemIndex].scenario.is_locked = megaParkLocked;
-        if (megaParkLocked && gConfigGeneral.scenario_hide_mega_park)
+        if (megaParkLocked && gConfigGeneral.ScenarioHideMegaPark)
         {
             // Remove mega park
             _listItems.pop_back();
@@ -813,7 +817,7 @@ static void InitialiseListItems(rct_window* w)
 
 static bool IsScenarioVisible(rct_window* w, const scenario_index_entry* scenario)
 {
-    if (gConfigGeneral.scenario_select_mode == SCENARIO_SELECT_MODE_ORIGIN || _titleEditor)
+    if (gConfigGeneral.ScenarioSelectMode == SCENARIO_SELECT_MODE_ORIGIN || _titleEditor)
     {
         if (static_cast<uint8_t>(scenario->source_game) != w->selected_tab)
         {
@@ -837,9 +841,9 @@ static bool IsScenarioVisible(rct_window* w, const scenario_index_entry* scenari
 
 static bool IsLockingEnabled(rct_window* w)
 {
-    if (gConfigGeneral.scenario_select_mode != SCENARIO_SELECT_MODE_ORIGIN)
+    if (gConfigGeneral.ScenarioSelectMode != SCENARIO_SELECT_MODE_ORIGIN)
         return false;
-    if (!gConfigGeneral.scenario_unlocking_enabled)
+    if (!gConfigGeneral.ScenarioUnlockingEnabled)
         return false;
     if (w->selected_tab >= 6)
         return false;

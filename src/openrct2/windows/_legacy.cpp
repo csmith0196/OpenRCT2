@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -64,12 +64,12 @@ money32 place_provisional_track_piece(
             viewport_set_visibility(2);
 
         // Invalidate previous track piece (we may not be changing height!)
-        virtual_floor_invalidate();
+        VirtualFloorInvalidate();
 
         if (!scenery_tool_is_active())
         {
             // Set new virtual floor height.
-            virtual_floor_set_height(trackPos.z);
+            VirtualFloorSetHeight(trackPos.z);
         }
 
         return result.Cost;
@@ -106,12 +106,12 @@ money32 place_provisional_track_piece(
         viewport_set_visibility(2);
 
     // Invalidate previous track piece (we may not be changing height!)
-    virtual_floor_invalidate();
+    VirtualFloorInvalidate();
 
     if (!scenery_tool_is_active())
     {
         // Set height to where the next track piece would begin
-        virtual_floor_set_height(trackPos.z - z_begin + z_end);
+        VirtualFloorSetHeight(trackPos.z - z_begin + z_end);
     }
 
     return res.Cost;
@@ -330,7 +330,7 @@ bool window_ride_construction_update_state(
 
         CoordsXY offsets = { trackCoordinates.x, trackCoordinates.y };
         CoordsXY coords = { x, y };
-        coords += offsets.Rotate(direction_reverse(trackDirection));
+        coords += offsets.Rotate(DirectionReverse(trackDirection));
         x = static_cast<uint16_t>(coords.x);
         y = static_cast<uint16_t>(coords.y);
     }
@@ -390,101 +390,6 @@ bool window_ride_construction_update_state(
     return false;
 }
 
-void window_ride_construction_do_entrance_exit_check()
-{
-    auto w = window_find_by_class(WC_RIDE_CONSTRUCTION);
-    auto ride = get_ride(_currentRideIndex);
-    if (w == nullptr || ride == nullptr)
-    {
-        return;
-    }
-
-    if (_rideConstructionState == RideConstructionState::State0)
-    {
-        w = window_find_by_class(WC_RIDE_CONSTRUCTION);
-        if (w != nullptr)
-        {
-            if (!ride_are_all_possible_entrances_and_exits_built(ride).Successful)
-            {
-                window_event_mouse_up_call(w, WC_RIDE_CONSTRUCTION__WIDX_ENTRANCE);
-            }
-        }
-    }
-}
-
-void window_ride_construction_mouseup_demolish_next_piece(const CoordsXYZD& piecePos, int32_t type)
-{
-    if (gGotoStartPlacementMode)
-    {
-        _currentTrackBegin.z = floor2(piecePos.z, COORDS_Z_STEP);
-        _rideConstructionState = RideConstructionState::Front;
-        _currentTrackSelectionFlags = 0;
-        _currentTrackPieceDirection = piecePos.direction & 3;
-        auto savedCurrentTrackCurve = _currentTrackCurve;
-        int32_t savedPreviousTrackSlopeEnd = _previousTrackSlopeEnd;
-        int32_t savedCurrentTrackSlopeEnd = _currentTrackSlopeEnd;
-        int32_t savedPreviousTrackBankEnd = _previousTrackBankEnd;
-        int32_t savedCurrentTrackBankEnd = _currentTrackBankEnd;
-        int32_t savedCurrentTrackAlternative = _currentTrackAlternative;
-        int32_t savedCurrentTrackLiftHill = _currentTrackLiftHill;
-        ride_construction_set_default_next_piece();
-        window_ride_construction_update_active_elements();
-        auto ride = get_ride(_currentRideIndex);
-        if (!ride_try_get_origin_element(ride, nullptr))
-        {
-            ride_initialise_construction_window(ride);
-            _currentTrackPieceDirection = piecePos.direction & 3;
-            if (!(savedCurrentTrackCurve & RideConstructionSpecialPieceSelected))
-            {
-                _currentTrackCurve = savedCurrentTrackCurve;
-                _previousTrackSlopeEnd = savedPreviousTrackSlopeEnd;
-                _currentTrackSlopeEnd = savedCurrentTrackSlopeEnd;
-                _previousTrackBankEnd = savedPreviousTrackBankEnd;
-                _currentTrackBankEnd = savedCurrentTrackBankEnd;
-                _currentTrackAlternative = savedCurrentTrackAlternative;
-                _currentTrackLiftHill = savedCurrentTrackLiftHill;
-                window_ride_construction_update_active_elements();
-            }
-        }
-    }
-    else
-    {
-        if (_rideConstructionState2 == RideConstructionState::Selected
-            || _rideConstructionState2 == RideConstructionState::Front)
-        {
-            if (type == TrackElemType::MiddleStation || type == TrackElemType::BeginStation)
-            {
-                type = TrackElemType::EndStation;
-            }
-        }
-        if (_rideConstructionState2 == RideConstructionState::Back)
-        {
-            if (type == TrackElemType::MiddleStation)
-            {
-                type = TrackElemType::BeginStation;
-            }
-        }
-        if (network_get_mode() == NETWORK_MODE_CLIENT)
-        {
-            // rideConstructionState needs to be set again to the proper value, this only affects the client
-            _rideConstructionState = RideConstructionState::Selected;
-        }
-        _currentTrackBegin = piecePos;
-        _currentTrackPieceDirection = piecePos.direction;
-        _currentTrackPieceType = type;
-        _currentTrackSelectionFlags = 0;
-        if (_rideConstructionState2 == RideConstructionState::Front)
-        {
-            ride_select_next_section();
-        }
-        else if (_rideConstructionState2 == RideConstructionState::Back)
-        {
-            ride_select_previous_section();
-        }
-        window_ride_construction_update_active_elements();
-    }
-}
-
 /**
  *
  *  rct2: 0x006C84CE
@@ -501,22 +406,22 @@ void window_ride_construction_update_active_elements()
  */
 bool scenery_tool_is_active()
 {
-    int32_t toolWindowClassification = gCurrentToolWidget.window_classification;
-    rct_widgetindex toolWidgetIndex = gCurrentToolWidget.widget_index;
+    auto toolWindowClassification = gCurrentToolWidget.window_classification;
+    WidgetIndex toolWidgetIndex = gCurrentToolWidget.widget_index;
     if (input_test_flag(INPUT_FLAG_TOOL_ACTIVE))
-        if (toolWindowClassification == WC_TOP_TOOLBAR && toolWidgetIndex == WC_TOP_TOOLBAR__WIDX_SCENERY)
+        if (toolWindowClassification == WindowClass::TopToolbar && toolWidgetIndex == WC_TOP_TOOLBAR__WIDX_SCENERY)
             return true;
 
     return false;
 }
 
-void init_scenery()
+void SceneryInit()
 {
     auto intent = Intent(INTENT_ACTION_INIT_SCENERY);
     context_broadcast_intent(&intent);
 }
 
-void scenery_set_default_placement_configuration()
+void ScenerySetDefaultPlacementConfiguration()
 {
     auto intent = Intent(INTENT_ACTION_SET_DEFAULT_SCENERY_CONFIG);
     context_broadcast_intent(&intent);

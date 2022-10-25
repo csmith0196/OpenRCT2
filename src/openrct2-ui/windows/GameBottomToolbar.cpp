@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -57,7 +57,7 @@ static rct_widget window_game_bottom_toolbar_widgets[] =
     MakeWidget({  2, 21}, {138, 11}, WindowWidgetType::FlatBtn,     WindowColour::Primary , 0xFFFFFFFF, STR_PARK_RATING_TIP                   ), // Park rating window
 
     MakeWidget({142,  0}, {356, 34}, WindowWidgetType::ImgBtn,      WindowColour::Tertiary                                                    ), // Middle outset panel
-    MakeWidget({144,  2}, {352, 30}, WindowWidgetType::Placeholder, WindowColour::Tertiary                                                    ), // Middle inset panel
+    MakeWidget({144,  2}, {352, 30}, WindowWidgetType::FlatBtn,     WindowColour::Tertiary                                                    ), // Middle inset panel
     MakeWidget({147,  5}, { 24, 24}, WindowWidgetType::FlatBtn,     WindowColour::Tertiary, 0xFFFFFFFF, STR_SHOW_SUBJECT_TIP                  ), // Associated news item window
     MakeWidget({469,  5}, { 24, 24}, WindowWidgetType::FlatBtn,     WindowColour::Tertiary, SPR_LOCATE, STR_LOCATE_SUBJECT_TIP                ), // Scroll to news item target
 
@@ -69,12 +69,12 @@ static rct_widget window_game_bottom_toolbar_widgets[] =
 
 uint8_t gToolbarDirtyFlags;
 
-static void WindowGameBottomToolbarMouseup(rct_window *w, rct_widgetindex widgetIndex);
-static OpenRCT2String WindowGameBottomToolbarTooltip(rct_window* w, const rct_widgetindex widgetIndex, const StringId fallback);
+static void WindowGameBottomToolbarMouseup(rct_window *w, WidgetIndex widgetIndex);
+static OpenRCT2String WindowGameBottomToolbarTooltip(rct_window* w, const WidgetIndex widgetIndex, const StringId fallback);
 static void WindowGameBottomToolbarInvalidate(rct_window *w);
 static void WindowGameBottomToolbarPaint(rct_window *w, rct_drawpixelinfo *dpi);
 static void WindowGameBottomToolbarUpdate(rct_window* w);
-static void WindowGameBottomToolbarCursor(rct_window *w, rct_widgetindex widgetIndex, const ScreenCoordsXY& screenCoords, CursorID *cursorId);
+static void WindowGameBottomToolbarCursor(rct_window *w, WidgetIndex widgetIndex, const ScreenCoordsXY& screenCoords, CursorID *cursorId);
 static void WindowGameBottomToolbarUnknown05(rct_window *w);
 
 static void WindowGameBottomToolbarDrawLeftPanel(rct_drawpixelinfo *dpi, rct_window *w);
@@ -87,7 +87,7 @@ static void WindowGameBottomToolbarDrawMiddlePanel(rct_drawpixelinfo *dpi, rct_w
  *
  *  rct2: 0x0097BFDC
  */
-static rct_window_event_list window_game_bottom_toolbar_events([](auto& events)
+static WindowEventList window_game_bottom_toolbar_events([](auto& events)
 {
     events.mouse_up = &WindowGameBottomToolbarMouseup;
     events.unknown_05 = &WindowGameBottomToolbarUnknown05;
@@ -111,12 +111,12 @@ rct_window* WindowGameBottomToolbarOpen()
     int32_t screenHeight = context_get_height();
 
     // Figure out how much line height we have to work with.
-    uint32_t line_height = font_get_line_height(FontSpriteBase::MEDIUM);
+    uint32_t line_height = font_get_line_height(FontStyle::Medium);
     uint32_t toolbar_height = line_height * 2 + 12;
 
     rct_window* window = WindowCreate(
         ScreenCoordsXY(0, screenHeight - toolbar_height), screenWidth, toolbar_height, &window_game_bottom_toolbar_events,
-        WC_BOTTOM_TOOLBAR, WF_STICK_TO_FRONT | WF_TRANSPARENT | WF_NO_BACKGROUND);
+        WindowClass::BottomToolbar, WF_STICK_TO_FRONT | WF_TRANSPARENT | WF_NO_BACKGROUND);
     window->widgets = window_game_bottom_toolbar_widgets;
 
     window->frame_no = 0;
@@ -133,7 +133,7 @@ rct_window* WindowGameBottomToolbarOpen()
  *
  *  rct2: 0x0066C588
  */
-static void WindowGameBottomToolbarMouseup(rct_window* w, rct_widgetindex widgetIndex)
+static void WindowGameBottomToolbarMouseup(rct_window* w, WidgetIndex widgetIndex)
 {
     News::Item* newsItem;
 
@@ -142,7 +142,7 @@ static void WindowGameBottomToolbarMouseup(rct_window* w, rct_widgetindex widget
         case WIDX_LEFT_OUTSET:
         case WIDX_MONEY:
             if (!(gParkFlags & PARK_FLAGS_NO_MONEY))
-                context_open_window(WC_FINANCES);
+                context_open_window(WindowClass::Finances);
             break;
         case WIDX_GUESTS:
             context_open_window_view(WV_PARK_GUESTS);
@@ -153,7 +153,7 @@ static void WindowGameBottomToolbarMouseup(rct_window* w, rct_widgetindex widget
         case WIDX_MIDDLE_INSET:
             if (News::IsQueueEmpty())
             {
-                context_open_window(WC_RECENT_NEWS);
+                context_open_window(WindowClass::RecentNews);
             }
             else
             {
@@ -183,12 +183,12 @@ static void WindowGameBottomToolbarMouseup(rct_window* w, rct_widgetindex widget
             break;
         case WIDX_RIGHT_OUTSET:
         case WIDX_DATE:
-            context_open_window(WC_RECENT_NEWS);
+            context_open_window(WindowClass::RecentNews);
             break;
     }
 }
 
-static OpenRCT2String WindowGameBottomToolbarTooltip(rct_window* w, const rct_widgetindex widgetIndex, const StringId fallback)
+static OpenRCT2String WindowGameBottomToolbarTooltip(rct_window* w, const WidgetIndex widgetIndex, const StringId fallback)
 {
     int32_t month, day;
     auto ft = Formatter();
@@ -220,7 +220,7 @@ static OpenRCT2String WindowGameBottomToolbarTooltip(rct_window* w, const rct_wi
 static void WindowGameBottomToolbarInvalidate(rct_window* w)
 {
     // Figure out how much line height we have to work with.
-    uint32_t line_height = font_get_line_height(FontSpriteBase::MEDIUM);
+    uint32_t line_height = font_get_line_height(FontStyle::Medium);
 
     // Reset dimensions as appropriate -- in case we're switching languages.
     w->height = line_height * 2 + 12;
@@ -291,7 +291,7 @@ static void WindowGameBottomToolbarInvalidate(rct_window* w)
         else
         {
             window_game_bottom_toolbar_widgets[WIDX_MIDDLE_OUTSET].type = WindowWidgetType::ImgBtn;
-            window_game_bottom_toolbar_widgets[WIDX_MIDDLE_INSET].type = WindowWidgetType::Placeholder;
+            window_game_bottom_toolbar_widgets[WIDX_MIDDLE_INSET].type = WindowWidgetType::FlatBtn;
             window_game_bottom_toolbar_widgets[WIDX_NEWS_SUBJECT].type = WindowWidgetType::Empty;
             window_game_bottom_toolbar_widgets[WIDX_NEWS_LOCATE].type = WindowWidgetType::Empty;
             window_game_bottom_toolbar_widgets[WIDX_MIDDLE_OUTSET].colour = 0;
@@ -302,7 +302,7 @@ static void WindowGameBottomToolbarInvalidate(rct_window* w)
     {
         News::Item* newsItem = News::GetItem(0);
         window_game_bottom_toolbar_widgets[WIDX_MIDDLE_OUTSET].type = WindowWidgetType::ImgBtn;
-        window_game_bottom_toolbar_widgets[WIDX_MIDDLE_INSET].type = WindowWidgetType::Placeholder;
+        window_game_bottom_toolbar_widgets[WIDX_MIDDLE_INSET].type = WindowWidgetType::FlatBtn;
         window_game_bottom_toolbar_widgets[WIDX_NEWS_SUBJECT].type = WindowWidgetType::FlatBtn;
         window_game_bottom_toolbar_widgets[WIDX_NEWS_LOCATE].type = WindowWidgetType::FlatBtn;
         window_game_bottom_toolbar_widgets[WIDX_MIDDLE_OUTSET].colour = 2;
@@ -338,7 +338,7 @@ void WindowGameBottomToolbarInvalidateNewsItem()
 {
     if (gScreenFlags == SCREEN_FLAGS_PLAYING)
     {
-        widget_invalidate_by_class(WC_BOTTOM_TOOLBAR, WIDX_MIDDLE_OUTSET);
+        widget_invalidate_by_class(WindowClass::BottomToolbar, WIDX_MIDDLE_OUTSET);
     }
 }
 
@@ -396,7 +396,7 @@ static void WindowGameBottomToolbarDrawLeftPanel(rct_drawpixelinfo* dpi, rct_win
     gfx_fill_rect_inset(dpi, { topLeft, bottomRight }, w->colours[1], INSET_RECT_F_30);
 
     // Figure out how much line height we have to work with.
-    uint32_t line_height = font_get_line_height(FontSpriteBase::MEDIUM);
+    uint32_t line_height = font_get_line_height(FontStyle::Medium);
 
     // Draw money
     if (!(gParkFlags & PARK_FLAGS_NO_MONEY))
@@ -406,7 +406,7 @@ static void WindowGameBottomToolbarDrawLeftPanel(rct_drawpixelinfo* dpi, rct_win
                                             w->windowPos.y + widget.midY() - (line_height == 10 ? 5 : 6) };
 
         colour_t colour
-            = (gHoverWidget.window_classification == WC_BOTTOM_TOOLBAR && gHoverWidget.widget_index == WIDX_MONEY
+            = (gHoverWidget.window_classification == WindowClass::BottomToolbar && gHoverWidget.widget_index == WIDX_MONEY
                    ? COLOUR_WHITE
                    : NOT_TRANSLUCENT(w->colours[0]));
         StringId stringId = gCash < 0 ? STR_BOTTOM_TOOLBAR_CASH_NEGATIVE : STR_BOTTOM_TOOLBAR_CASH;
@@ -435,7 +435,7 @@ static void WindowGameBottomToolbarDrawLeftPanel(rct_drawpixelinfo* dpi, rct_win
         StringId stringId = gNumGuestsInPark == 1 ? _guestCountFormatsSingular[gGuestChangeModifier]
                                                   : _guestCountFormats[gGuestChangeModifier];
         colour_t colour
-            = (gHoverWidget.window_classification == WC_BOTTOM_TOOLBAR && gHoverWidget.widget_index == WIDX_GUESTS
+            = (gHoverWidget.window_classification == WindowClass::BottomToolbar && gHoverWidget.widget_index == WIDX_GUESTS
                    ? COLOUR_WHITE
                    : NOT_TRANSLUCENT(w->colours[0]));
         auto ft = Formatter();
@@ -465,12 +465,12 @@ static void WindowGameBottomToolbarDrawParkRating(
     bar_width = (factor * 114) / 255;
     gfx_fill_rect_inset(
         dpi, { coords + ScreenCoordsXY{ 1, 1 }, coords + ScreenCoordsXY{ 114, 9 } }, w->colours[1], INSET_RECT_F_30);
-    if (!(colour & IMAGE_TYPE_REMAP_2_PLUS) || game_is_paused() || (gCurrentRealTimeTicks & 8))
+    if (!(colour & BAR_BLINK) || game_is_paused() || (gCurrentRealTimeTicks & 8))
     {
         if (bar_width > 2)
         {
             gfx_fill_rect_inset(
-                dpi, { coords + ScreenCoordsXY{ 2, 2 }, coords + ScreenCoordsXY{ bar_width - 1, 8 } }, colour & 0x7FFFFFFF, 0);
+                dpi, { coords + ScreenCoordsXY{ 2, 2 }, coords + ScreenCoordsXY{ bar_width - 1, 8 } }, colour, 0);
         }
     }
 
@@ -502,10 +502,10 @@ static void WindowGameBottomToolbarDrawRightPanel(rct_drawpixelinfo* dpi, rct_wi
     int32_t day = ((gDateMonthTicks * days_in_month[month]) >> 16) & 0xFF;
 
     colour_t colour
-        = (gHoverWidget.window_classification == WC_BOTTOM_TOOLBAR && gHoverWidget.widget_index == WIDX_DATE
+        = (gHoverWidget.window_classification == WindowClass::BottomToolbar && gHoverWidget.widget_index == WIDX_DATE
                ? COLOUR_WHITE
                : NOT_TRANSLUCENT(w->colours[0]));
-    StringId stringId = DateFormatStringFormatIds[gConfigGeneral.date_format];
+    StringId stringId = DateFormatStringFormatIds[gConfigGeneral.DateFormat];
     auto ft = Formatter();
     ft.Add<StringId>(DateDayNames[day]);
     ft.Add<int16_t>(month);
@@ -513,7 +513,7 @@ static void WindowGameBottomToolbarDrawRightPanel(rct_drawpixelinfo* dpi, rct_wi
     DrawTextBasic(dpi, screenCoords, stringId, ft, { colour, TextAlignment::CENTRE });
 
     // Figure out how much line height we have to work with.
-    uint32_t line_height = font_get_line_height(FontSpriteBase::MEDIUM);
+    uint32_t line_height = font_get_line_height(FontStyle::Medium);
 
     // Temperature
     screenCoords = { w->windowPos.x + window_game_bottom_toolbar_widgets[WIDX_RIGHT_OUTSET].left + 15,
@@ -521,9 +521,9 @@ static void WindowGameBottomToolbarDrawRightPanel(rct_drawpixelinfo* dpi, rct_wi
 
     int32_t temperature = gClimateCurrent.Temperature;
     StringId format = STR_CELSIUS_VALUE;
-    if (gConfigGeneral.temperature_format == TemperatureUnit::Fahrenheit)
+    if (gConfigGeneral.TemperatureFormat == TemperatureUnit::Fahrenheit)
     {
-        temperature = climate_celsius_to_fahrenheit(temperature);
+        temperature = ClimateCelsiusToFahrenheit(temperature);
         format = STR_FAHRENHEIT_VALUE;
     }
     ft = Formatter();
@@ -532,11 +532,11 @@ static void WindowGameBottomToolbarDrawRightPanel(rct_drawpixelinfo* dpi, rct_wi
     screenCoords.x += 30;
 
     // Current weather
-    auto currentWeatherSpriteId = climate_get_weather_sprite_id(gClimateCurrent);
+    auto currentWeatherSpriteId = ClimateGetWeatherSpriteId(gClimateCurrent);
     gfx_draw_sprite(dpi, ImageId(currentWeatherSpriteId), screenCoords);
 
     // Next weather
-    auto nextWeatherSpriteId = climate_get_weather_sprite_id(gClimateNext);
+    auto nextWeatherSpriteId = ClimateGetWeatherSpriteId(gClimateNext);
     if (currentWeatherSpriteId != nextWeatherSpriteId)
     {
         if (gClimateUpdateTimer < 960)
@@ -662,7 +662,7 @@ static void WindowGameBottomToolbarDrawMiddlePanel(rct_drawpixelinfo* dpi, rct_w
         w->colours[1], INSET_RECT_F_30);
 
     // Figure out how much line height we have to work with.
-    uint32_t line_height = font_get_line_height(FontSpriteBase::MEDIUM);
+    uint32_t line_height = font_get_line_height(FontStyle::Medium);
 
     ScreenCoordsXY middleWidgetCoords(
         w->windowPos.x + middleOutsetWidget->midX(), w->windowPos.y + middleOutsetWidget->top + line_height + 1);
@@ -702,7 +702,7 @@ static void WindowGameBottomToolbarUpdate(rct_window* w)
  *  rct2: 0x0066C644
  */
 static void WindowGameBottomToolbarCursor(
-    rct_window* w, rct_widgetindex widgetIndex, const ScreenCoordsXY& screenCoords, CursorID* cursorId)
+    rct_window* w, WidgetIndex widgetIndex, const ScreenCoordsXY& screenCoords, CursorID* cursorId)
 {
     switch (widgetIndex)
     {

@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2021 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -160,7 +160,7 @@ public:
         widgets[WIDX_OPEN_URL].top = height - 19;
     }
 
-    void OnMouseUp(rct_widgetindex widgetIndex) override
+    void OnMouseUp(WidgetIndex widgetIndex) override
     {
         switch (widgetIndex)
         {
@@ -182,7 +182,7 @@ public:
 
     void OnScrollDraw(int32_t scrollIndex, rct_drawpixelinfo& dpi) override
     {
-        const int32_t lineHeight = font_get_line_height(FontSpriteBase::MEDIUM);
+        const int32_t lineHeight = font_get_line_height(FontStyle::Medium);
 
         ScreenCoordsXY screenCoords(3, 3 - lineHeight);
         for (const auto& line : _changelogLines)
@@ -199,7 +199,7 @@ public:
     {
         return ScreenSize(
             _changelogLongestLineWidth + 4,
-            static_cast<int32_t>(_changelogLines.size()) * font_get_line_height(FontSpriteBase::MEDIUM));
+            static_cast<int32_t>(_changelogLines.size()) * font_get_line_height(FontStyle::Medium));
     }
 
     // TODO: This probably should be a utility function defined elsewhere for reusability
@@ -301,7 +301,7 @@ private:
         _changelogLongestLineWidth = 0;
         for (const auto& line : _changelogLines)
         {
-            int32_t linewidth = gfx_get_string_width(line.c_str(), FontSpriteBase::MEDIUM);
+            int32_t linewidth = gfx_get_string_width(line.c_str(), FontStyle::Medium);
             _changelogLongestLineWidth = std::max(linewidth, _changelogLongestLineWidth);
         }
     }
@@ -309,7 +309,7 @@ private:
 
 rct_window* WindowChangelogOpen(int personality)
 {
-    auto* window = window_bring_to_front_by_class(WC_CHANGELOG);
+    auto* window = window_bring_to_front_by_class(WindowClass::Changelog);
     if (window == nullptr)
     {
         // Create a new centred window
@@ -319,7 +319,7 @@ rct_window* WindowChangelogOpen(int personality)
         int32_t height = (screenHeight * 4) / 5;
 
         auto pos = ChangelogWindow::GetCentrePositionForNewWindow(width, height);
-        auto* newWindow = WindowCreate<ChangelogWindow>(WC_CHANGELOG, pos, width, height, WF_RESIZABLE);
+        auto* newWindow = WindowCreate<ChangelogWindow>(WindowClass::Changelog, pos, width, height, WF_RESIZABLE);
         newWindow->SetPersonality(personality);
         return newWindow;
     }

@@ -334,7 +334,6 @@ STR_0950    :Oyunu yükle
 STR_0951    :Oyunu kapat
 STR_0952    :Oyunu kapat
 STR_0953    :Arazi yükle
-STR_0954    :
 STR_0955    :Bu kesim için koltuk eğim dereceseni seçiniz
 STR_0956    :-180°
 STR_0957    :-135°
@@ -382,10 +381,10 @@ STR_0998    :Daha fazla istasyon inşa edilemez
 STR_0999    :Istasyon inşa etmeniz şart
 STR_1000    :Alet tam devre olmalıdır
 STR_1001    :Bu ray bu alet için uyumlu değil
-STR_1002    :{POP16}{POP16}{POP16}{STRINGID} açılamıyor…
-STR_1003    :{POP16}{POP16}{POP16}{STRINGID} test edilemiyor…
-STR_1004    :{POP16}{POP16}{POP16}{STRINGID} kapatılamıyor…
-STR_1005    :{POP16}{POP16}{POP16}{STRINGID} inşa edilemiyor…
+STR_1002    :{STRINGID} açılamıyor…
+STR_1003    :{STRINGID} test edilemiyor…
+STR_1004    :{STRINGID} kapatılamıyor…
+STR_1005    :{STRINGID} inşa edilemiyor…
 STR_1006    :Ilk önce kapatılması lazım
 STR_1007    :Yeterince vagon oluşturulamıyor
 STR_1008    :Aleti aç, kapat veya dene
@@ -2703,8 +2702,6 @@ STR_5503    :Host ismini veya IP-Adresini giriniz:
 STR_5504    :Multiplayer durumunu göster
 STR_5505    :Server’e bağlanamadı.
 STR_5506    :Müşteriler şiddet oranını aldırmasın
-STR_5508    :Checksum’ı yanlış olan dosyaların yüklenmesine izin ver
-STR_5509    :Bu ayar ile bozuk veya arızalı senrayolar ve oyun kayıdları yüklenebiliyor
 STR_5510    :Varasayılan aygıt
 STR_5511    :(BILINMIYOR)
 STR_5512    :Farklı kaydet
@@ -2987,7 +2984,7 @@ STR_5832    :Yükseklik birimin “Mesafe ve Hız” bölümünde seçdiğiniz g
 STR_5833    :Kullanmak istediğiniz tarih formatını seçiniz
 STR_5834    :Kullanmak istediğiniz ses aygıtını seçiniz
 STR_5835    :Oyun penceresi simge durumuna getirildiğinde oyununu sesini kıs
-STR_5836    :Ana ekran müziğini.{NEWLINE}RCT1 seçildiğinde ya RCT 1’in ‘data’ adlı klasöründen ‘css17.dat’ dosyasını RCT2’nin ‘data’ adlı klasörüne ‘css50.dat’ olarak kopyalamanız yada ‘Diğer Ayarlar’ penceresinden RCT1 klasörünü belirlemeniz gereklidir
+STR_5836    :Ana ekran müziğini.{NEWLINE}RCT1 temasını seçmek için ‘Diğer Ayarlar’ penceresinden RCT1 klasörünü belirlemeniz gereklidir.
 STR_5837    :Arayüzü temları değiştiriniz veya oluşturunuz
 STR_5838    :Üst araç çubuğunda ‘Finansal Bakış’ simgesini göster/gizle
 STR_5839    :Üst araç çubuğunda ‘Araştırma’ simgesini göster/gizle
@@ -3296,7 +3293,6 @@ STR_6154    :Güvenlik nedenleriyle, OpenRCT2’yi yükseltilmiş izinlerle çal
 STR_6155    :Ne KDialog nede Zenity kurulu. Ya ikisinden birisini kurunuz yada konsol üzeri komut ile ayarlayınız
 STR_6156    :Isim kullanılıyor
 STR_6157    :Konsol
-STR_6158    :Bu dosya yüklenemedi…{NEWLINE}RCTC versiyonu uyumsuz: {COMMA16}
 STR_6160    :{WINDOW_COLOUR_2}Mevcut araçlar/tasarımlar: {BLACK}{STRING}
 STR_6161    :Zemin çizgisi
 STR_6162    :Rotasyonlu Vahşi Fare
@@ -3379,6 +3375,19 @@ STR_6267    :Zemin deneticisini aç
 STR_6268    :Bir sonraki tick’e atla		
 STR_6269    :Geçersiz hava ID’si
 STR_6360    :{BLACK}{COMMA32}
+STR_6515    :{BLACK}RCT1 bağlı değil - yedek görüntüler kullanılacak.
+STR_6516    :Eklenen bir veya daha fazla nesne, uygun görüntüleme için RCT1'in bağlanmasını gerektirir. Yedek görüntüler kullanılacak.
+STR_6517    :Bu parktaki bir veya daha fazla nesne, düzgün görüntüleme için RCT1'in bağlanmasını gerektirir. Yedek görüntüler kullanılacak.
+STR_6518    :{BLACK}Açıklamasını ve amacını görüntülemek için bir senaryonun üzerine gelin. Oynamaya başlamak için tıklayın.
+STR_6519    :Ekstralar
+STR_6520    :Varlık paketleri
+STR_6521    :Düşük öncelik
+STR_6522    :Yüksek öncelik
+STR_6523    :Seçili varlık paketinin önceliğini düşür.
+STR_6524    :Seçili varlık paketinin önceliğini yükselt.
+STR_6525    :Etkinleştirilmiş varlık paketleri ile beraber oyundaki tüm varlıkları yeniden yükleyin.
+STR_6526    :(ana grafikler, müzik ve ses efektleri)
+STR_6527    :Yarışmalar
 
 #############
 # Scenarios #
@@ -3827,44 +3836,8 @@ STR_DTLS    :
 ###########
 
 ## Start OpenRCT2 Official
-[XXBBBR01]
-STR_NAME    :Ana blok
-
-[TTRFTL02]
-STR_NAME    :Çatı
-
-[TTRFTL03]
-STR_NAME    :Çatı
-
-[TTRFTL04]
-STR_NAME    :Çatı
-
-[TTRFTL07]
-STR_NAME    :Çatı
-
-[TTRFTL08]
-STR_NAME    :Çatı
-
-[TTPIRF02]
-STR_NAME    :Çatı
-
-[TTPIRF03]
-STR_NAME    :Çatı
-
-[TTPIRF04]
-STR_NAME    :Çatı
-
 [TTPIRF05]
 STR_NAME    :Çatı
-
-[TTPIRF07]
-STR_NAME    :Çatı
-
-[TTPIRF08]
-STR_NAME    :Çatı
-
-[MG-PRAR]
-STR_NAME    :Geçitli duvar
 
 [TTRFWD01]
 STR_NAME    :Çatı
@@ -3889,15 +3862,6 @@ STR_NAME    :Çatı
 
 [TTRFWD08]
 STR_NAME    :Çatı
-
-[TTRFGL01]
-STR_NAME    :Cam çatı
-
-[TTRFGL02]
-STR_NAME    :Cam çatı
-
-[TTRFGL03]
-STR_NAME    :Cam çatı
 
 [ACWW33]
 STR_NAME    :Direkli ahşap duvar

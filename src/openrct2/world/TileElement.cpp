@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -18,7 +18,7 @@
 #include "Location.hpp"
 #include "Scenery.h"
 
-bool tile_element_is_underground(TileElement* tileElement)
+bool TileElementIsUnderground(TileElement* tileElement)
 {
     do
     {
@@ -81,7 +81,7 @@ void TileElement::RemoveBannerEntry()
     auto banner = GetBanner(bannerIndex);
     if (banner != nullptr)
     {
-        window_close_by_number(WC_BANNER, bannerIndex.ToUnderlying());
+        window_close_by_number(WindowClass::Banner, bannerIndex.ToUnderlying());
         DeleteBanner(banner->id);
     }
 }

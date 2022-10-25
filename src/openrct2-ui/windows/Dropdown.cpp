@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -354,7 +354,7 @@ void WindowDropdownShowText(const ScreenCoordsXY& screenPos, int32_t extray, uin
     for (size_t i = 0; i < num_items; i++)
     {
         format_string(buffer, 256, gDropdownItems[i].Format, static_cast<void*>(&gDropdownItems[i].Args));
-        string_width = gfx_get_string_width(buffer, FontSpriteBase::MEDIUM);
+        string_width = gfx_get_string_width(buffer, FontStyle::Medium);
         max_string_width = std::max(string_width, max_string_width);
     }
 
@@ -384,7 +384,7 @@ void WindowDropdownShowTextCustomWidth(
     WindowDropdownClose();
 
     // Create the window (width/height position are set later)
-    auto* w = WindowCreate<DropdownWindow>(WC_DROPDOWN, width, custom_height, WF_STICK_TO_FRONT);
+    auto* w = WindowCreate<DropdownWindow>(WindowClass::Dropdown, width, custom_height, WF_STICK_TO_FRONT);
     if (w != nullptr)
     {
         w->SetTextItems(screenPos, extray, colour, custom_height, flags, num_items, width);
@@ -417,7 +417,7 @@ void WindowDropdownShowImage(
     WindowDropdownClose();
 
     // Create the window (width/height position are set later)
-    auto* w = WindowCreate<DropdownWindow>(WC_DROPDOWN, itemWidth, itemHeight, WF_STICK_TO_FRONT);
+    auto* w = WindowCreate<DropdownWindow>(WindowClass::Dropdown, itemWidth, itemHeight, WF_STICK_TO_FRONT);
     if (w != nullptr)
     {
         w->SetImageItems({ x, y }, extray, colour, numItems, itemWidth, itemHeight, numColumns);
@@ -426,7 +426,7 @@ void WindowDropdownShowImage(
 
 void WindowDropdownClose()
 {
-    window_close_by_class(WC_DROPDOWN);
+    window_close_by_class(WindowClass::Dropdown);
 }
 
 /**
@@ -435,7 +435,7 @@ void WindowDropdownClose()
  */
 int32_t DropdownIndexFromPoint(const ScreenCoordsXY& loc, rct_window* w)
 {
-    if (w->classification == WC_DROPDOWN)
+    if (w->classification == WindowClass::Dropdown)
     {
         auto* ddWnd = static_cast<DropdownWindow*>(w);
         return ddWnd->GetIndexFromPoint(loc);
@@ -456,7 +456,7 @@ void WindowDropdownShowColour(rct_window* w, rct_widget* widget, uint8_t dropdow
             defaultIndex = i;
 
         gDropdownItems[i].Format = Dropdown::FormatColourPicker;
-        gDropdownItems[i].Args = (i << 32) | (SPRITE_ID_PALETTE_COLOUR_1(i) | SPR_PALETTE_BTN);
+        gDropdownItems[i].Args = (i << 32) | ImageId(SPR_PALETTE_BTN, i).ToUInt32();
     }
 
     // Show dropdown

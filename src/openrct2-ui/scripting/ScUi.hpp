@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -48,6 +48,7 @@ namespace OpenRCT2::Scripting
         { "other", SCENARIO_CATEGORY_OTHER },
         { "dlc", SCENARIO_CATEGORY_DLC },
         { "build_your_own", SCENARIO_CATEGORY_BUILD_YOUR_OWN },
+        { "competitions", SCENARIO_CATEGORY_COMPETITIONS },
     });
 
     static const DukEnumMap<ScenarioSource> ScenarioSourceMap({
@@ -58,6 +59,7 @@ namespace OpenRCT2::Scripting
         { "rct2_ww", ScenarioSource::RCT2_WW },
         { "rct2_tt", ScenarioSource::RCT2_TT },
         { "real", ScenarioSource::Real },
+        { "extras", ScenarioSource::Extras },
         { "other", ScenarioSource::Other },
     });
 
@@ -133,7 +135,7 @@ namespace OpenRCT2::Scripting
 
         std::shared_ptr<ScViewport> mainViewport_get() const
         {
-            return std::make_shared<ScViewport>(WC_MAIN_WINDOW);
+            return std::make_shared<ScViewport>(WindowClass::MainWindow);
         }
 
         std::shared_ptr<ScTileSelection> tileSelection_get() const
@@ -176,7 +178,7 @@ namespace OpenRCT2::Scripting
         void closeWindows(std::string classification, DukValue id)
         {
             auto cls = GetClassification(classification);
-            if (cls != WC_NULL)
+            if (cls != WindowClass::Null)
             {
                 if (id.type() == DukValue::Type::NUMBER)
                 {
@@ -383,9 +385,9 @@ namespace OpenRCT2::Scripting
         }
 
     private:
-        rct_windowclass GetClassification(const std::string& key) const
+        WindowClass GetClassification(const std::string& key) const
         {
-            return WC_NULL;
+            return WindowClass::Null;
         }
 
         DukValue GetScenarioFile(std::string_view path)

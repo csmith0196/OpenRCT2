@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -16,7 +16,6 @@
 #include "../object/ObjectRepository.h"
 #include "../object/RideObject.h"
 #include "../rct12/SawyerChunkReader.h"
-#include "../rct12/SawyerEncoding.h"
 #include "../ride/Ride.h"
 #include "../ride/RideData.h"
 #include "../ride/TrackDesign.h"
@@ -57,12 +56,6 @@ namespace RCT2
 
         bool LoadFromStream(OpenRCT2::IStream* stream) override
         {
-            if (!gConfigGeneral.allow_loading_with_incorrect_checksum
-                && SawyerEncoding::ValidateTrackChecksum(stream) != RCT12TrackDesignVersion::TD6)
-            {
-                throw IOException("Invalid checksum.");
-            }
-
             auto chunkReader = SawyerChunkReader(stream);
             auto data = chunkReader.ReadChunkTrack();
             _stream.WriteArray<const uint8_t>(reinterpret_cast<const uint8_t*>(data->GetData()), data->GetLength());
@@ -88,8 +81,9 @@ namespace RCT2
             td->colour_scheme = td6.version_and_colour_scheme & 0x3;
             for (auto i = 0; i < Limits::MaxTrainsPerRide; ++i)
             {
-                td->vehicle_colours[i] = td6.vehicle_colours[i];
-                td->vehicle_additional_colour[i] = td6.vehicle_additional_colour[i];
+                td->vehicle_colours[i].Body = td6.vehicle_colours[i].body_colour;
+                td->vehicle_colours[i].Trim = td6.vehicle_colours[i].trim_colour;
+                td->vehicle_colours[i].Tertiary = td6.vehicle_additional_colour[i];
             }
             td->entrance_style = td6.entrance_style;
             td->total_air_time = td6.total_air_time;

@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -80,7 +80,7 @@ public:
         OnClose();
     }
 
-    void OnMouseUp(rct_widgetindex widgetIndex) override
+    void OnMouseUp(WidgetIndex widgetIndex) override
     {
         // mouseup appears to be used for buttons, checkboxes
         switch (widgetIndex)
@@ -138,7 +138,7 @@ public:
         }
     }
 
-    void OnMouseDown(rct_widgetindex widgetIndex) override
+    void OnMouseDown(WidgetIndex widgetIndex) override
     {
         rct_window* mainWindow;
 
@@ -191,7 +191,7 @@ public:
         widget_invalidate(*this, WIDX_CLIP_HEIGHT_SLIDER);
     }
 
-    void OnToolUpdate(rct_widgetindex widgetIndex, const ScreenCoordsXY& screenCoords) override
+    void OnToolUpdate(WidgetIndex widgetIndex, const ScreenCoordsXY& screenCoords) override
     {
         if (_dragging)
         {
@@ -203,14 +203,14 @@ public:
         if (mapCoords.has_value())
         {
             gMapSelectFlags |= MAP_SELECT_FLAG_ENABLE;
-            map_invalidate_tile_full(gMapSelectPositionA);
+            MapInvalidateTileFull(gMapSelectPositionA);
             gMapSelectPositionA = gMapSelectPositionB = mapCoords.value();
-            map_invalidate_tile_full(mapCoords.value());
+            MapInvalidateTileFull(mapCoords.value());
             gMapSelectType = MAP_SELECT_TYPE_FULL;
         }
     }
 
-    void OnToolDown(rct_widgetindex widgetIndex, const ScreenCoordsXY& screenCoords) override
+    void OnToolDown(WidgetIndex widgetIndex, const ScreenCoordsXY& screenCoords) override
     {
         int32_t direction;
         auto mapCoords = screen_pos_to_map_pos(screenCoords, &direction);
@@ -221,7 +221,7 @@ public:
         }
     }
 
-    void OnToolDrag(rct_widgetindex widgetIndex, const ScreenCoordsXY& screenCoords) override
+    void OnToolDrag(WidgetIndex widgetIndex, const ScreenCoordsXY& screenCoords) override
     {
         if (!_dragging)
         {
@@ -232,18 +232,18 @@ public:
         auto mapCoords = screen_pos_to_map_pos(screenCoords, &direction);
         if (mapCoords)
         {
-            map_invalidate_selection_rect();
+            MapInvalidateSelectionRect();
             gMapSelectFlags |= MAP_SELECT_FLAG_ENABLE;
             gMapSelectPositionA.x = std::min(_selectionStart.x, mapCoords->x);
             gMapSelectPositionB.x = std::max(_selectionStart.x, mapCoords->x);
             gMapSelectPositionA.y = std::min(_selectionStart.y, mapCoords->y);
             gMapSelectPositionB.y = std::max(_selectionStart.y, mapCoords->y);
             gMapSelectType = MAP_SELECT_TYPE_FULL;
-            map_invalidate_selection_rect();
+            MapInvalidateSelectionRect();
         }
     }
 
-    void OnToolUp(rct_widgetindex, const ScreenCoordsXY&) override
+    void OnToolUp(WidgetIndex, const ScreenCoordsXY&) override
     {
         gClipSelectionA = gMapSelectPositionA;
         gClipSelectionB = gMapSelectPositionB;
@@ -298,7 +298,7 @@ public:
             case DisplayType::DisplayUnits:
             {
                 // Print the value in the configured height label type:
-                if (gConfigGeneral.show_height_as_units)
+                if (gConfigGeneral.ShowHeightAsUnits)
                 {
                     // Height label is Units.
                     auto ft = Formatter();
@@ -311,7 +311,7 @@ public:
                 {
                     // Height label is Real Values.
                     // Print the value in the configured measurement units.
-                    switch (gConfigGeneral.measurement_format)
+                    switch (gConfigGeneral.MeasurementFormat)
                     {
                         case MeasurementFormat::Metric:
                         case MeasurementFormat::SI:
@@ -390,7 +390,7 @@ private:
     {
         if (!(input_test_flag(INPUT_FLAG_TOOL_ACTIVE)))
             return false;
-        if (gCurrentToolWidget.window_classification != WC_VIEW_CLIPPING)
+        if (gCurrentToolWidget.window_classification != WindowClass::ViewClipping)
             return false;
         return _toolActive;
     }
@@ -398,10 +398,10 @@ private:
 
 rct_window* WindowViewClippingOpen()
 {
-    auto* window = window_bring_to_front_by_class(WC_VIEW_CLIPPING);
+    auto* window = window_bring_to_front_by_class(WindowClass::ViewClipping);
     if (window == nullptr)
     {
-        window = WindowCreate<ViewClippingWindow>(WC_VIEW_CLIPPING, ScreenCoordsXY(32, 32), WW, WH);
+        window = WindowCreate<ViewClippingWindow>(WindowClass::ViewClipping, ScreenCoordsXY(32, 32), WW, WH);
     }
     return window;
 }

@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -100,7 +100,7 @@ public:
             windowPos.x = ((w->width / 2) - (width / 2));
     }
 
-    void OnMouseUp(rct_widgetindex widgetIndex) override
+    void OnMouseUp(WidgetIndex widgetIndex) override
     {
         switch (widgetIndex)
         {
@@ -139,7 +139,7 @@ public:
         SetWidgetPressed(WIDX_INVISIBLE_VEHICLES, (wflags & VIEWPORT_FLAG_INVISIBLE_VEHICLES));
         SetWidgetPressed(WIDX_INVISIBLE_SUPPORTS, (wflags & VIEWPORT_FLAG_INVISIBLE_SUPPORTS));
 
-        for (rct_widgetindex i = WIDX_INVISIBLE_VEGETATION; i <= WIDX_INVISIBLE_SUPPORTS; i++)
+        for (WidgetIndex i = WIDX_INVISIBLE_VEGETATION; i <= WIDX_INVISIBLE_SUPPORTS; i++)
         {
             widgets[i].image = IsWidgetPressed(i) ? SPR_G2_BUTTON_HIDE_FULL : SPR_G2_BUTTON_HIDE_PARTIAL;
         }
@@ -151,8 +151,8 @@ public:
         // Locate mechanic button image
         const auto& widget = widgets[WIDX_HIDE_STAFF];
         auto screenCoords = windowPos + ScreenCoordsXY{ widget.left, widget.top };
-        gfx_draw_sprite(
-            &dpi, (gStaffMechanicColour << 24) | IMAGE_TYPE_REMAP | IMAGE_TYPE_REMAP_2_PLUS | SPR_MECHANIC, screenCoords, 0);
+        auto image = ImageId(SPR_MECHANIC, COLOUR_BLACK, gStaffMechanicColour);
+        gfx_draw_sprite(&dpi, image, screenCoords);
     }
 
 private:
@@ -167,7 +167,7 @@ private:
         return wflags;
     }
 
-    void ToggleViewportFlag(rct_widgetindex widgetIndex)
+    void ToggleViewportFlag(WidgetIndex widgetIndex)
     {
         uint32_t wflags = 0;
         rct_window* w = window_get_main();
@@ -234,21 +234,21 @@ private:
 
     void SaveInConfig(uint32_t wflags)
     {
-        gConfigGeneral.invisible_rides = wflags & VIEWPORT_FLAG_INVISIBLE_RIDES;
-        gConfigGeneral.invisible_vehicles = wflags & VIEWPORT_FLAG_INVISIBLE_VEHICLES;
-        gConfigGeneral.invisible_scenery = wflags & VIEWPORT_FLAG_INVISIBLE_SCENERY;
-        gConfigGeneral.invisible_trees = wflags & VIEWPORT_FLAG_INVISIBLE_VEGETATION;
-        gConfigGeneral.invisible_paths = wflags & VIEWPORT_FLAG_INVISIBLE_PATHS;
-        gConfigGeneral.invisible_supports = wflags & VIEWPORT_FLAG_INVISIBLE_SUPPORTS;
-        config_save_default();
+        gConfigGeneral.InvisibleRides = wflags & VIEWPORT_FLAG_INVISIBLE_RIDES;
+        gConfigGeneral.InvisibleVehicles = wflags & VIEWPORT_FLAG_INVISIBLE_VEHICLES;
+        gConfigGeneral.InvisibleScenery = wflags & VIEWPORT_FLAG_INVISIBLE_SCENERY;
+        gConfigGeneral.InvisibleTrees = wflags & VIEWPORT_FLAG_INVISIBLE_VEGETATION;
+        gConfigGeneral.InvisiblePaths = wflags & VIEWPORT_FLAG_INVISIBLE_PATHS;
+        gConfigGeneral.InvisibleSupports = wflags & VIEWPORT_FLAG_INVISIBLE_SUPPORTS;
+        ConfigSaveDefault();
     }
 };
 
 rct_window* WindowTransparencyOpen()
 {
-    auto* window = window_bring_to_front_by_class(WC_TRANSPARENCY);
+    auto* window = window_bring_to_front_by_class(WindowClass::Transparency);
     if (window == nullptr)
-        window = WindowCreate<TransparencyWindow>(WC_TRANSPARENCY, ScreenCoordsXY(32, 32), WW, WH);
+        window = WindowCreate<TransparencyWindow>(WindowClass::Transparency, ScreenCoordsXY(32, 32), WW, WH);
 
     return window;
 }

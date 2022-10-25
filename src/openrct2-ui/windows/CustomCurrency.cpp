@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -59,7 +59,7 @@ public:
         colours[2] = COLOUR_LIGHT_BROWN;
     }
 
-    void OnMouseDown(rct_widgetindex widgetIndex) override
+    void OnMouseDown(WidgetIndex widgetIndex) override
     {
         auto* widget = &widgets[widgetIndex - 1];
 
@@ -70,16 +70,16 @@ public:
                 break;
             case WIDX_RATE_UP:
                 CurrencyDescriptors[EnumValue(CurrencyType::Custom)].rate += 1;
-                gConfigGeneral.custom_currency_rate = CurrencyDescriptors[EnumValue(CurrencyType::Custom)].rate;
-                config_save_default();
+                gConfigGeneral.CustomCurrencyRate = CurrencyDescriptors[EnumValue(CurrencyType::Custom)].rate;
+                ConfigSaveDefault();
                 window_invalidate_all();
                 break;
             case WIDX_RATE_DOWN:
                 if (CurrencyDescriptors[EnumValue(CurrencyType::Custom)].rate > 1)
                 {
                     CurrencyDescriptors[EnumValue(CurrencyType::Custom)].rate -= 1;
-                    gConfigGeneral.custom_currency_rate = CurrencyDescriptors[EnumValue(CurrencyType::Custom)].rate;
-                    config_save_default();
+                    gConfigGeneral.CustomCurrencyRate = CurrencyDescriptors[EnumValue(CurrencyType::Custom)].rate;
+                    ConfigSaveDefault();
                     window_invalidate_all();
                 }
                 break;
@@ -112,7 +112,7 @@ public:
         }
     }
 
-    void OnMouseUp(rct_widgetindex widgetIndex) override
+    void OnMouseUp(WidgetIndex widgetIndex) override
     {
         switch (widgetIndex)
         {
@@ -125,7 +125,7 @@ public:
         }
     }
 
-    void OnDropdown(rct_widgetindex widgetIndex, int32_t dropdownIndex) override
+    void OnDropdown(WidgetIndex widgetIndex, int32_t dropdownIndex) override
     {
         if (dropdownIndex == -1)
             return;
@@ -143,14 +143,14 @@ public:
                 CurrencyDescriptors[EnumValue(CurrencyType::Custom)].affix_unicode = CurrencyAffix::Suffix;
             }
 
-            gConfigGeneral.custom_currency_affix = CurrencyDescriptors[EnumValue(CurrencyType::Custom)].affix_unicode;
-            config_save_default();
+            gConfigGeneral.CustomCurrencyAffix = CurrencyDescriptors[EnumValue(CurrencyType::Custom)].affix_unicode;
+            ConfigSaveDefault();
 
             window_invalidate_all();
         }
     }
 
-    void OnTextInput(rct_widgetindex widgetIndex, std::string_view text) override
+    void OnTextInput(WidgetIndex widgetIndex, std::string_view text) override
     {
         if (text.empty())
             return;
@@ -165,10 +165,10 @@ public:
                     CURRENCY_SYMBOL_MAX_SIZE);
 
                 safe_strcpy(
-                    gConfigGeneral.custom_currency_symbol, CurrencyDescriptors[EnumValue(CurrencyType::Custom)].symbol_unicode,
+                    gConfigGeneral.CustomCurrencySymbol, CurrencyDescriptors[EnumValue(CurrencyType::Custom)].symbol_unicode,
                     CURRENCY_SYMBOL_MAX_SIZE);
 
-                config_save_default();
+                ConfigSaveDefault();
                 window_invalidate_all();
                 break;
 
@@ -178,8 +178,8 @@ public:
                 {
                     rate = res.value();
                     CurrencyDescriptors[EnumValue(CurrencyType::Custom)].rate = rate;
-                    gConfigGeneral.custom_currency_rate = CurrencyDescriptors[EnumValue(CurrencyType::Custom)].rate;
-                    config_save_default();
+                    gConfigGeneral.CustomCurrencyRate = CurrencyDescriptors[EnumValue(CurrencyType::Custom)].rate;
+                    ConfigSaveDefault();
                     window_invalidate_all();
                 }
                 break;
@@ -225,5 +225,5 @@ public:
 
 rct_window* CustomCurrencyWindowOpen()
 {
-    return WindowFocusOrCreate<CustomCurrencyWindow>(WC_CUSTOM_CURRENCY_CONFIG, WW, WH, WF_CENTRE_SCREEN);
+    return WindowFocusOrCreate<CustomCurrencyWindow>(WindowClass::CustomCurrencyConfig, WW, WH, WF_CENTRE_SCREEN);
 }

@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -74,20 +74,20 @@ static rct_widget window_server_list_widgets[] = {
 // clang-format on
 
 static void WindowServerListClose(rct_window* w);
-static void WindowServerListMouseup(rct_window* w, rct_widgetindex widgetIndex);
+static void WindowServerListMouseup(rct_window* w, WidgetIndex widgetIndex);
 static void WindowServerListResize(rct_window* w);
-static void WindowServerListDropdown(rct_window* w, rct_widgetindex widgetIndex, int32_t dropdownIndex);
+static void WindowServerListDropdown(rct_window* w, WidgetIndex widgetIndex, int32_t dropdownIndex);
 static void WindowServerListUpdate(rct_window* w);
 static void WindowServerListScrollGetsize(rct_window* w, int32_t scrollIndex, int32_t* width, int32_t* height);
 static void WindowServerListScrollMousedown(rct_window* w, int32_t scrollIndex, const ScreenCoordsXY& screenCoords);
 static void WindowServerListScrollMouseover(rct_window* w, int32_t scrollIndex, const ScreenCoordsXY& screenCoords);
-static void WindowServerListTextinput(rct_window* w, rct_widgetindex widgetIndex, char* text);
-static OpenRCT2String WindowServerListTooltip(rct_window* const w, const rct_widgetindex widgetIndex, StringId fallback);
+static void WindowServerListTextinput(rct_window* w, WidgetIndex widgetIndex, char* text);
+static OpenRCT2String WindowServerListTooltip(rct_window* const w, const WidgetIndex widgetIndex, StringId fallback);
 static void WindowServerListInvalidate(rct_window* w);
 static void WindowServerListPaint(rct_window* w, rct_drawpixelinfo* dpi);
 static void WindowServerListScrollpaint(rct_window* w, rct_drawpixelinfo* dpi, int32_t scrollIndex);
 
-static rct_window_event_list window_server_list_events([](auto& events) {
+static WindowEventList window_server_list_events([](auto& events) {
     events.close = &WindowServerListClose;
     events.mouse_up = &WindowServerListMouseup;
     events.resize = &WindowServerListResize;
@@ -121,11 +121,12 @@ rct_window* WindowServerListOpen()
     rct_window* window;
 
     // Check if window is already open
-    window = window_bring_to_front_by_class(WC_SERVER_LIST);
+    window = window_bring_to_front_by_class(WindowClass::ServerList);
     if (window != nullptr)
         return window;
 
-    window = WindowCreateCentred(WWIDTH_MIN, WHEIGHT_MIN, &window_server_list_events, WC_SERVER_LIST, WF_10 | WF_RESIZABLE);
+    window = WindowCreateCentred(
+        WWIDTH_MIN, WHEIGHT_MIN, &window_server_list_events, WindowClass::ServerList, WF_10 | WF_RESIZABLE);
 
     window_server_list_widgets[WIDX_PLAYER_NAME_INPUT].string = _playerName;
     window->widgets = window_server_list_widgets;
@@ -143,9 +144,8 @@ rct_window* WindowServerListOpen()
 
     window_set_resize(*window, WWIDTH_MIN, WHEIGHT_MIN, WWIDTH_MAX, WHEIGHT_MAX);
 
-    safe_strcpy(_playerName, gConfigNetwork.player_name.c_str(), sizeof(_playerName));
+    safe_strcpy(_playerName, gConfigNetwork.PlayerName.c_str(), sizeof(_playerName));
 
-    _serverList.ReadAndAddFavourites();
     window->no_list_items = static_cast<uint16_t>(_serverList.GetCount());
 
     ServerListFetchServersBegin();
@@ -159,7 +159,7 @@ static void WindowServerListClose(rct_window* w)
     _fetchFuture = {};
 }
 
-static void WindowServerListMouseup(rct_window* w, rct_widgetindex widgetIndex)
+static void WindowServerListMouseup(rct_window* w, WidgetIndex widgetIndex)
 {
     switch (widgetIndex)
     {
@@ -195,7 +195,7 @@ static void WindowServerListMouseup(rct_window* w, rct_widgetindex widgetIndex)
             WindowTextInputOpen(w, widgetIndex, STR_ADD_SERVER, STR_ENTER_HOSTNAME_OR_IP_ADDRESS, {}, STR_NONE, 0, 128);
             break;
         case WIDX_START_SERVER:
-            context_open_window(WC_SERVER_START);
+            context_open_window(WindowClass::ServerStart);
             break;
     }
 }
@@ -205,7 +205,7 @@ static void WindowServerListResize(rct_window* w)
     window_set_resize(*w, WWIDTH_MIN, WHEIGHT_MIN, WWIDTH_MAX, WHEIGHT_MAX);
 }
 
-static void WindowServerListDropdown(rct_window* w, rct_widgetindex widgetIndex, int32_t dropdownIndex)
+static void WindowServerListDropdown(rct_window* w, WidgetIndex widgetIndex, int32_t dropdownIndex)
 {
     auto serverIndex = w->selected_list_item;
     if (serverIndex >= 0 && serverIndex < static_cast<int32_t>(_serverList.GetCount()))
@@ -303,7 +303,7 @@ static void WindowServerListScrollMouseover(rct_window* w, int32_t scrollIndex, 
     }
 }
 
-static void WindowServerListTextinput(rct_window* w, rct_widgetindex widgetIndex, char* text)
+static void WindowServerListTextinput(rct_window* w, WidgetIndex widgetIndex, char* text)
 {
     if (text == nullptr || text[0] == 0)
         return;
@@ -322,8 +322,8 @@ static void WindowServerListTextinput(rct_window* w, rct_widgetindex widgetIndex
 
             if (_playerName[0] != '\0')
             {
-                gConfigNetwork.player_name = _playerName;
-                config_save_default();
+                gConfigNetwork.PlayerName = _playerName;
+                ConfigSaveDefault();
             }
 
             widget_invalidate(*w, WIDX_PLAYER_NAME_INPUT);
@@ -343,7 +343,7 @@ static void WindowServerListTextinput(rct_window* w, rct_widgetindex widgetIndex
     }
 }
 
-static OpenRCT2String WindowServerListTooltip(rct_window* const w, const rct_widgetindex widgetIndex, StringId fallback)
+static OpenRCT2String WindowServerListTooltip(rct_window* const w, const WidgetIndex widgetIndex, StringId fallback)
 {
     auto ft = Formatter();
     ft.Add<char*>(_version.c_str());
@@ -441,7 +441,7 @@ static void WindowServerListScrollpaint(rct_window* w, rct_drawpixelinfo* dpi, i
         {
             snprintf(players, sizeof(players), "%d/%d", serverDetails.Players, serverDetails.MaxPlayers);
         }
-        const int16_t numPlayersStringWidth = gfx_get_string_width(players, FontSpriteBase::MEDIUM);
+        const int16_t numPlayersStringWidth = gfx_get_string_width(players, FontStyle::Medium);
 
         // How much space we have for the server info depends on the size of everything rendered after.
         const int16_t spaceAvailableForInfo = width - numPlayersStringWidth - SCROLLBAR_WIDTH - 35;
@@ -580,7 +580,8 @@ static void ServerListFetchServersCheck(rct_window* w)
             try
             {
                 auto [entries, statusText] = _fetchFuture.get();
-                _serverList.AddRange(entries);
+                _serverList.AddOrUpdateRange(entries);
+                _serverList.WriteFavourites(); // Update favourites in case favourited server info changes
                 _numPlayersOnline = _serverList.GetTotalPlayerCount();
                 _statusText = STR_X_PLAYERS_ONLINE;
                 if (statusText != STR_NONE)

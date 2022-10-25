@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -44,7 +44,7 @@ struct IObjectManager
     virtual void ResetObjects() abstract;
 
     virtual std::vector<const ObjectRepositoryItem*> GetPackableObjects() abstract;
-    virtual const std::vector<ObjectEntryIndex>& GetAllRideEntries(uint8_t rideType) abstract;
+    virtual const std::vector<ObjectEntryIndex>& GetAllRideEntries(ride_type_t rideType) abstract;
 };
 
 [[nodiscard]] std::unique_ptr<IObjectManager> CreateObjectManager(IObjectRepository& objectRepository);

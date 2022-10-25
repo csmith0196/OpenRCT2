@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -31,7 +31,7 @@ static rct_widget window_error_widgets[] = {
 static void WindowErrorUnknown5(rct_window *w);
 static void WindowErrorPaint(rct_window *w, rct_drawpixelinfo *dpi);
 
-static rct_window_event_list window_error_events([](auto& events)
+static WindowEventList window_error_events([](auto& events)
 {
     events.unknown_05 = &WindowErrorUnknown5;
     events.paint = &WindowErrorPaint;
@@ -60,7 +60,7 @@ rct_window* WindowErrorOpen(std::string_view title, std::string_view message)
     int32_t numLines, width, height, maxY;
     rct_window* w;
 
-    window_close_by_class(WC_ERROR);
+    window_close_by_class(WindowClass::Error);
     auto& buffer = _window_error_text;
     buffer.assign("{BLACK}");
     buffer.append(title);
@@ -84,14 +84,14 @@ rct_window* WindowErrorOpen(std::string_view title, std::string_view message)
     if (buffer.size() <= 1)
         return nullptr;
 
-    width = gfx_get_string_width_new_lined(buffer.data(), FontSpriteBase::MEDIUM);
+    width = gfx_get_string_width_new_lined(buffer.data(), FontStyle::Medium);
     width = std::clamp(width, 64, 196);
 
-    gfx_wrap_string(buffer.data(), width + 1, FontSpriteBase::MEDIUM, &numLines);
+    gfx_wrap_string(buffer.data(), width + 1, FontStyle::Medium, &numLines);
 
     _window_error_num_lines = numLines;
     width = width + 3;
-    height = (numLines + 1) * font_get_line_height(FontSpriteBase::MEDIUM) + 4;
+    height = (numLines + 1) * font_get_line_height(FontStyle::Medium) + 4;
 
     window_error_widgets[WIDX_BACKGROUND].right = width;
     window_error_widgets[WIDX_BACKGROUND].bottom = height;
@@ -109,7 +109,8 @@ rct_window* WindowErrorOpen(std::string_view title, std::string_view message)
     }
 
     w = WindowCreate(
-        windowPosition, width, height, &window_error_events, WC_ERROR, WF_STICK_TO_FRONT | WF_TRANSPARENT | WF_RESIZABLE);
+        windowPosition, width, height, &window_error_events, WindowClass::Error,
+        WF_STICK_TO_FRONT | WF_TRANSPARENT | WF_RESIZABLE);
     w->widgets = window_error_widgets;
     w->error.var_480 = 0;
     if (!gDisableErrorWindowSound)
@@ -174,5 +175,5 @@ static void WindowErrorPaint(rct_window* w, rct_drawpixelinfo* dpi)
 
     draw_string_centred_raw(
         dpi, { leftTop + ScreenCoordsXY{ (w->width + 1) / 2 - 1, 1 } }, _window_error_num_lines, _window_error_text.data(),
-        FontSpriteBase::MEDIUM);
+        FontStyle::Medium);
 }

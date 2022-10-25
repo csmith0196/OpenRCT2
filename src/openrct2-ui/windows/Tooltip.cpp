@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -29,7 +29,7 @@ static rct_widget window_tooltip_widgets[] = {
 static void WindowTooltipUpdate(rct_window *w);
 static void WindowTooltipPaint(rct_window *w, rct_drawpixelinfo *dpi);
 
-static rct_window_event_list window_tooltip_events([](auto& events)
+static WindowEventList window_tooltip_events([](auto& events)
 {
     events.update = &WindowTooltipUpdate;
     events.paint = &WindowTooltipPaint;
@@ -43,7 +43,7 @@ void WindowTooltipReset(const ScreenCoordsXY& screenCoords)
 {
     gTooltipCursor = screenCoords;
     gTooltipTimeout = 0;
-    gTooltipWidget.window_classification = 255;
+    gTooltipWidget.window_classification = WindowClass::Null;
     input_set_state(InputState::Normal);
     input_set_flag(INPUT_FLAG_4, false);
 }
@@ -58,24 +58,24 @@ static int32_t FormatTextForTooltip(const OpenRCT2String& message)
     formattedMessage.args.Add<const char*>(tempBuffer);
     format_string(_tooltipText, sizeof(_tooltipText), formattedMessage.str, formattedMessage.args.Data());
 
-    auto textWidth = gfx_get_string_width_new_lined(_tooltipText, FontSpriteBase::SMALL);
+    auto textWidth = gfx_get_string_width_new_lined(_tooltipText, FontStyle::Small);
     textWidth = std::min(textWidth, 196);
 
     int32_t numLines;
-    textWidth = gfx_wrap_string(_tooltipText, textWidth + 1, FontSpriteBase::SMALL, &numLines);
+    textWidth = gfx_wrap_string(_tooltipText, textWidth + 1, FontStyle::Small, &numLines);
     _tooltipNumLines = numLines;
     return textWidth;
 }
 
 void WindowTooltipShow(const OpenRCT2String& message, ScreenCoordsXY screenCoords)
 {
-    auto* w = window_find_by_class(WC_ERROR);
+    auto* w = window_find_by_class(WindowClass::Error);
     if (w != nullptr)
         return;
 
     int32_t textWidth = FormatTextForTooltip(message);
     int32_t width = textWidth + 3;
-    int32_t height = ((_tooltipNumLines + 1) * font_get_line_height(FontSpriteBase::SMALL)) + 4;
+    int32_t height = ((_tooltipNumLines + 1) * font_get_line_height(FontStyle::Small)) + 4;
     window_tooltip_widgets[WIDX_BACKGROUND].right = width;
     window_tooltip_widgets[WIDX_BACKGROUND].bottom = height;
 
@@ -94,7 +94,8 @@ void WindowTooltipShow(const OpenRCT2String& message, ScreenCoordsXY screenCoord
         screenCoords.y -= height + 40;
     screenCoords.y = std::clamp(screenCoords.y, 22, max_y);
 
-    w = WindowCreate(screenCoords, width, height, &window_tooltip_events, WC_TOOLTIP, WF_TRANSPARENT | WF_STICK_TO_FRONT);
+    w = WindowCreate(
+        screenCoords, width, height, &window_tooltip_events, WindowClass::Tooltip, WF_TRANSPARENT | WF_STICK_TO_FRONT);
     w->widgets = window_tooltip_widgets;
 
     reset_tooltip_not_shown();
@@ -104,7 +105,7 @@ void WindowTooltipShow(const OpenRCT2String& message, ScreenCoordsXY screenCoord
  *
  *  rct2: 0x006EA10D
  */
-void WindowTooltipOpen(rct_window* widgetWindow, rct_widgetindex widgetIndex, const ScreenCoordsXY& screenCords)
+void WindowTooltipOpen(rct_window* widgetWindow, WidgetIndex widgetIndex, const ScreenCoordsXY& screenCords)
 {
     if (widgetWindow == nullptr || widgetIndex == -1)
         return;
@@ -115,9 +116,13 @@ void WindowTooltipOpen(rct_window* widgetWindow, rct_widgetindex widgetIndex, co
     OpenRCT2String result;
     if (widget->flags & WIDGET_FLAGS::TOOLTIP_IS_STRING)
     {
+        auto tooltipString = widget->sztooltip;
+        if (*tooltipString == 0)
+            return;
+
         result.str = STR_STRING_TOOLTIP;
         result.args = Formatter();
-        result.args.Add<const char*>(widget->sztooltip);
+        result.args.Add<const char*>(tooltipString);
 
         gTooltipWidget.window_classification = widgetWindow->classification;
         gTooltipWidget.window_number = widgetWindow->number;
@@ -146,9 +151,9 @@ void WindowTooltipOpen(rct_window* widgetWindow, rct_widgetindex widgetIndex, co
  */
 void WindowTooltipClose()
 {
-    window_close_by_class(WC_TOOLTIP);
+    window_close_by_class(WindowClass::Tooltip);
     gTooltipTimeout = 0;
-    gTooltipWidget.window_classification = 255;
+    gTooltipWidget.window_classification = WindowClass::Null;
 }
 
 /**
@@ -190,5 +195,5 @@ static void WindowTooltipPaint(rct_window* w, rct_drawpixelinfo* dpi)
     // Text
     left = w->windowPos.x + ((w->width + 1) / 2) - 1;
     top = w->windowPos.y + 1;
-    draw_string_centred_raw(dpi, { left, top }, _tooltipNumLines, _tooltipText, FontSpriteBase::SMALL);
+    draw_string_centred_raw(dpi, { left, top }, _tooltipNumLines, _tooltipText, FontStyle::Small);
 }

@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -136,7 +136,7 @@ private:
         TrackDesignFileRef* tdRef = &_trackDesigns[trackDesignIndex];
         if (gScreenFlags & SCREEN_FLAGS_TRACK_MANAGER)
         {
-            auto intent = Intent(WC_MANAGE_TRACK_DESIGN);
+            auto intent = Intent(WindowClass::ManageTrackDesign);
             intent.putExtra(INTENT_EXTRA_TRACK_DESIGN, tdRef);
             context_open_intent(&intent);
         }
@@ -148,7 +148,7 @@ private:
                 context_show_error(STR_THIS_DESIGN_WILL_BE_BUILT_WITH_AN_ALTERNATIVE_VEHICLE_TYPE, STR_NONE, {});
             }
 
-            auto intent = Intent(WC_TRACK_DESIGN_PLACE);
+            auto intent = Intent(WindowClass::TrackDesignPlace);
             intent.putExtra(INTENT_EXTRA_TRACK_DESIGN, tdRef);
             context_open_intent(&intent);
         }
@@ -249,13 +249,13 @@ public:
         // try to load the track manager again, and an infinite loop will result.
         if ((gScreenFlags & SCREEN_FLAGS_TRACK_MANAGER) && gScreenAge != 0)
         {
-            window_close_by_number(WC_MANAGE_TRACK_DESIGN, number);
-            window_close_by_number(WC_TRACK_DELETE_PROMPT, number);
+            window_close_by_number(WindowClass::ManageTrackDesign, number);
+            window_close_by_number(WindowClass::TrackDeletePrompt, number);
             Editor::LoadTrackManager();
         }
     }
 
-    void OnMouseUp(const rct_widgetindex widgetIndex) override
+    void OnMouseUp(const WidgetIndex widgetIndex) override
     {
         switch (widgetIndex)
         {
@@ -276,7 +276,7 @@ public:
                 Close();
                 if (!(gScreenFlags & SCREEN_FLAGS_TRACK_MANAGER))
                 {
-                    context_open_window(WC_CONSTRUCT_RIDE);
+                    context_open_window(WindowClass::ConstructRide);
                 }
                 break;
             case WIDX_FILTER_STRING:
@@ -343,7 +343,7 @@ public:
         }
     }
 
-    void OnTextInput(const rct_widgetindex widgetIndex, std::string_view text) override
+    void OnTextInput(const WidgetIndex widgetIndex, std::string_view text) override
     {
         if (widgetIndex != WIDX_FILTER_STRING || text.empty())
             return;
@@ -407,7 +407,7 @@ public:
         }
 
         // When debugging tools are on, shift everything up a bit to make room for displaying the path.
-        const int32_t bottomMargin = gConfigGeneral.debugging_tools ? (WINDOW_PADDING + DEBUG_PATH_HEIGHT) : WINDOW_PADDING;
+        const int32_t bottomMargin = gConfigGeneral.DebuggingTools ? (WINDOW_PADDING + DEBUG_PATH_HEIGHT) : WINDOW_PADDING;
         window_track_list_widgets[WIDX_TRACK_LIST].bottom = height - bottomMargin;
         window_track_list_widgets[WIDX_ROTATE].bottom = height - bottomMargin;
         window_track_list_widgets[WIDX_ROTATE].top = window_track_list_widgets[WIDX_ROTATE].bottom
@@ -461,11 +461,11 @@ public:
         u8string path = _trackDesigns[trackIndex].path;
 
         // Show track file path (in debug mode)
-        if (gConfigGeneral.debugging_tools)
+        if (gConfigGeneral.DebuggingTools)
         {
             utf8 pathBuffer[MAX_PATH];
             const utf8* pathPtr = pathBuffer;
-            shorten_path(pathBuffer, sizeof(pathBuffer), path.c_str(), width, FontSpriteBase::MEDIUM);
+            shorten_path(pathBuffer, sizeof(pathBuffer), path.c_str(), width, FontStyle::Medium);
             auto ft = Formatter();
             ft.Add<utf8*>(pathPtr);
             DrawTextBasic(
@@ -757,7 +757,7 @@ rct_window* WindowTrackListOpen(const RideSelection item)
     {
         screenPos = { 0, TOP_TOOLBAR_HEIGHT + 2 };
     }
-    auto* w = WindowCreate<TrackListWindow>(WC_TRACK_DESIGN_LIST, WW, WH, 0);
+    auto* w = WindowCreate<TrackListWindow>(WindowClass::TrackDesignList, WW, WH, 0);
     w->SetRideSelection(item);
     return w;
 }

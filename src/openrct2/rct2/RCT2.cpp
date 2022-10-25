@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2020 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -138,14 +138,14 @@ namespace RCT2
         min_max_cars_per_train |= newValue & 0x0F;
     }
 
-    bool RCT2TrackTypeIsBooster(uint8_t rideType, uint16_t trackType)
+    bool RCT2TrackTypeIsBooster(ride_type_t rideType, uint16_t trackType)
     {
         // Boosters share their ID with the Spinning Control track.
         return rideType != RIDE_TYPE_SPINNING_WILD_MOUSE && rideType != RIDE_TYPE_STEEL_WILD_MOUSE
             && trackType == TrackElemType::Booster;
     }
 
-    track_type_t RCT2TrackTypeToOpenRCT2(RCT12TrackType origTrackType, uint8_t rideType, bool convertFlat)
+    track_type_t RCT2TrackTypeToOpenRCT2(RCT12TrackType origTrackType, ride_type_t rideType, bool convertFlat)
     {
         if (convertFlat && GetRideTypeDescriptor(rideType).HasFlag(RIDE_TYPE_FLAG_FLAT_RIDE))
             return RCT12FlatTrackTypeToOpenRCT2(origTrackType);
@@ -216,6 +216,16 @@ namespace RCT2
           "rct2.footpath_railings.concrete" },
         { "PATHCRZY", "rct1ll.footpath_surface.tiles_green", "rct1aa.footpath_surface.queue_green",
           "rct2.footpath_railings.concrete" },
+
+        // Custom path mapping
+        { "PATHINVS", "openrct2.footpath_surface.invisible", "openrct2.footpath_surface.queue_invisible",
+          "openrct2.footpath_railings.invisible" },
+        { "PATHCLR ", "openrct2.footpath_surface.invisible", "openrct2.footpath_surface.queue_invisible",
+          "openrct2.footpath_railings.invisible" },
+        { "PAT25MKY", "openrct2.footpath_surface.invisible", "openrct2.footpath_surface.queue_invisible",
+          "openrct2.footpath_railings.invisible" },
+        { "JAINVSFP", "openrct2.footpath_surface.invisible", "openrct2.footpath_surface.queue_invisible",
+          "openrct2.footpath_railings.invisible" },
     };
 
     const FootpathMapping* GetFootpathSurfaceId(const ObjectEntryDescriptor& desc, bool ideallyLoaded, bool isQueue)

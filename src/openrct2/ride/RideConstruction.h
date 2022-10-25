@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2014-2021 OpenRCT2 developers
+ * Copyright (c) 2014-2022 OpenRCT2 developers
  *
  * For a complete list of all authors, please refer to contributors.md
  * Interested in contributing? Visit https://github.com/OpenRCT2/OpenRCT2
@@ -34,8 +34,6 @@ enum class RideConstructionState : uint8_t
     MazeMove,
     MazeFill
 };
-
-extern bool gGotoStartPlacementMode;
 
 extern money32 _currentTrackPrice;
 
@@ -74,8 +72,8 @@ extern uint8_t gRideEntranceExitPlaceDirection;
 std::optional<CoordsXYZ> GetTrackElementOriginAndApplyChanges(
     const CoordsXYZD& location, track_type_t type, uint16_t extra_params, TileElement** output_element, uint16_t flags);
 
-void ride_entrance_exit_place_provisional_ghost();
-void ride_entrance_exit_remove_ghost();
+void RideEntranceExitPlaceProvisionalGhost();
+void RideEntranceExitRemoveGhost();
 void ride_restore_provisional_track_piece();
 void ride_remove_provisional_track_piece();
 
@@ -88,7 +86,7 @@ void ride_construction_set_default_next_piece();
 void ride_select_next_section();
 void ride_select_previous_section();
 
-bool ride_modify(CoordsXYE* input);
+bool ride_modify(const CoordsXYE& input);
 
 CoordsXYZD ride_get_entrance_or_exit_position_from_screen_position(const ScreenCoordsXY& screenCoords);
 
